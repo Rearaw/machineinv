@@ -41,6 +41,5 @@ def index():
 
     machines = Machine.query.order_by(Machine.time.desc()).all()
     return render_template('index.html', machines=machines)
-
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
