@@ -15,6 +15,9 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
 
+    # Import models to ensure they're registered
+    from app.models import User, Role, Equipment, Service, Category, Location, Component
+
     # Import and register routes
     from app import routes
     routes.init_app(app)

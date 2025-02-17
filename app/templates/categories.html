@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}Categories{% endblock %}
+
+{% block content %}
+<h2>Categories</h2>
+<a href="{{ url_for('add_category') }}" class="btn btn-primary mb-3">Add Category</a>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Category Name</th>
+            <th>Description</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for category in categories %}
+        <tr>
+            <td>{{ category.category_id }}</td>
+            <td>{{ category.category_name }}</td>
+            <td>{{ category.description }}</td>
+            <td>
+                <a href="{{ url_for('delete_category', category_id=category.category_id) }}" class="btn btn-danger btn-sm">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

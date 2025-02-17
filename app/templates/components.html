@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Components{% endblock %}
+
+{% block content %}
+<h2>Components</h2>
+<a href="{{ url_for('add_component') }}" class="btn btn-primary mb-3">Add Component</a>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Component Name</th>
+            <th>Serial Number</th>
+            <th>Install Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for component in components %}
+        <tr>
+            <td>{{ component.component_id }}</td>
+            <td>{{ component.component_name }}</td>
+            <td>{{ component.component_serial_number }}</td>
+            <td>{{ component.component_install_date }}</td>
+            <td>
+                <a href="{{ url_for('delete_component', component_id=component.component_id) }}" class="btn btn-danger btn-sm">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+
