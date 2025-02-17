@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>Update Machine</h2>
+    <form method="POST">
+        <label for="last_service_date">Last Service Date:</label>
+        <input type="date" id="last_service_date" name="last_service_date" value="{{ machine.last_service_date }}">
+        <button type="submit">Update</button>
+    </form>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Update Equipment{% endblock %}
+{% block content %}
+<h2>Update Equipment: {{ equipment.equipment_name }}</h2>
+<form method="post">
+  <div class="mb-3">
+    <label for="status" class="form-label">Status</label>
+    <input type="text" class="form-control" id="status" name="status" value="{{ equipment.status }}" required>
+  </div>
+  <button type="submit" class="btn btn-primary">Update</button>
+</form>
+{% endblock %}

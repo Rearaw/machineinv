@@ -1,31 +1,32 @@
 {% extends "base.html" %}
-
 {% block title %}Equipments{% endblock %}
-
 {% block content %}
 <h2>Equipments</h2>
 <table class="table table-bordered">
-    <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Name</th>
-            <th>Serial Number</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for equipment in equipments %}
-        <tr>
-            <td>{{ equipment.equipment_id }}</td>
-            <td>{{ equipment.equipment_name }}</td>
-            <td>{{ equipment.serial_number }}</td>
-            <td>{{ equipment.status }}</td>
-            <td>
-                <a href="{{ url_for('update_equipment', equipment_id=equipment.equipment_id) }}" class="btn btn-sm btn-warning">Edit</a>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
+  <thead>
+    <tr>
+      <th>Equipment Name</th>
+      <th>Serial Number</th>
+      <th>Status</th>
+      <th>Location</th>
+      <th>Category</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for equipment in equipments %}
+    <tr>
+      <td>{{ equipment.equipment_name }}</td>
+      <td>{{ equipment.serial_number }}</td>
+      <td>{{ equipment.status }}</td>
+      <td>{{ equipment.location.location_name if equipment.location else '' }}</td>
+      <td>{{ equipment.category.category_name if equipment.category else '' }}</td>
+      <td>
+        <a href="{{ url_for('update_equipment', equipment_id=equipment.equipment_id) }}" class="btn btn-sm btn-info">Edit</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
 </table>
 {% endblock %}
+

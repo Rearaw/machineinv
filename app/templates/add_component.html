@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Add Component{% endblock %}
+{% block content %}
+<h2>Add Component</h2>
+<form method="post">
+  <div class="mb-3">
+    <label for="component_name" class="form-label">Component Name</label>
+    <input type="text" class="form-control" id="component_name" name="component_name" required>
+  </div>
+  <div class="mb-3">
+    <label for="serial_number" class="form-label">Serial Number</label>
+    <input type="text" class="form-control" id="serial_number" name="serial_number" required>
+  </div>
+  <div class="mb-3">
+    <label for="install_date" class="form-label">Install Date</label>
+    <input type="date" class="form-control" id="install_date" name="install_date" required>
+  </div>
+  <div class="mb-3">
+    <label for="service_id" class="form-label">Service ID</label>
+    <input type="number" class="form-control" id="service_id" name="service_id" required>
+  </div>
+  <button type="submit" class="btn btn-primary">Add Component</button>
+</form>
+{% endblock %}
