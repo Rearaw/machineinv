@@ -2,9 +2,11 @@
 {% block title %}Equipments{% endblock %}
 {% block content %}
 <h2>Equipments</h2>
+<a href="{{ url_for('add_equipment') }}" class="btn btn-primary mb-3">Add Equipment</a>
 <table class="table table-bordered">
   <thead>
     <tr>
+      <th>Image</th>
       <th>Equipment Name</th>
       <th>Serial Number</th>
       <th>Status</th>
@@ -16,6 +18,13 @@
   <tbody>
     {% for equipment in equipments %}
     <tr>
+      <td>
+        {% if equipment.equipment_picture %}
+        <img src="{{ url_for('static', filename='uploads/' ~ equipment.equipment_picture) }}" width="80" height="80" alt="Equipment Image">
+        {% else %}
+        No Image
+        {% endif %}
+      </td>
       <td>{{ equipment.equipment_name }}</td>
       <td>{{ equipment.serial_number }}</td>
       <td>{{ equipment.status }}</td>
