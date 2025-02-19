@@ -4,8 +4,9 @@ from flask_login import login_user, logout_user, login_required, current_user
 from app import db, login_manager
 from app.models import User, Role, Equipment, Service,Component,Category,Location
 from werkzeug.utils import secure_filename
-import os
-UPLOAD_FOLDER = "app/static/uploads"
+import os.path
+
+UPLOAD_FOLDER = os.path.expanduser("~/machineinv/app/static/uploads")
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 # Ensure upload directory exists
 if not os.path.exists(UPLOAD_FOLDER):

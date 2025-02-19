@@ -1,11 +1,15 @@
 {% extends "base.html" %}
 {% block title %}Update Equipment{% endblock %}
 {% block content %}
-<h2>Update Equipment: {{ equipment.equipment_name }}</h2>
+<h2>Change Status: {{ equipment.equipment_name }}</h2>
 <form method="post">
   <div class="mb-3">
-    <label for="status" class="form-label">Status</label>
-    <input type="text" class="form-control" id="status" name="status" value="{{ equipment.status }}" required>
+    <label for="status" class="form-label">Machine Status</label>
+    <select class="form-select" id="status" name="status" required>
+      <option value="online" {% if equipment and equipment.status == "online" %}selected{% endif %}>🟢 Online</option>
+      <option value="offline" {% if equipment and equipment.status == "offline" %}selected{% endif %}>🔴 Offline</option>
+      <option value="serviced" {% if equipment and equipment.status == "serviced" %}selected{% endif %}>🟡 Serviced</option>
+    </select>
   </div>
   <button type="submit" class="btn btn-primary">Update</button>
 </form>

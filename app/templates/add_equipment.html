@@ -20,8 +20,12 @@
     <input type="date" class="form-control" id="warranty_expiry" name="warranty_expiry">
   </div>
   <div class="mb-3">
-    <label for="status" class="form-label">Status</label>
-    <input type="text" class="form-control" id="status" name="status">
+    <label for="status" class="form-label">Machine Status</label>
+    <select class="form-select" id="status" name="status" required>
+      <option value="online" {% if equipment and equipment.status == "online" %}selected{% endif %}>🟢 Online</option>
+      <option value="offline" {% if equipment and equipment.status == "offline" %}selected{% endif %}>🔴 Offline</option>
+      <option value="serviced" {% if equipment and equipment.status == "serviced" %}selected{% endif %}>🟡 Serviced</option>
+    </select>
   </div>
   <div class="mb-3">
     <label for="equipment_picture" class="form-label">Upload Equipment Image</label>
