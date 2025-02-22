@@ -55,16 +55,16 @@ def init_app(app):
         equipments = Equipment.query.all()
         return render_template('equipments.html', equipments=equipments)
 
-    @app.route('/update_equipment/<int:equipment_id>', methods=['GET', 'POST'])
-    @login_required
-    def update_equipment(equipment_id):
-        equipment = Equipment.query.get_or_404(equipment_id)
-        if request.method == 'POST':
-            equipment.status = request.form['status']
-            db.session.commit()
-            flash('Equipment updated successfully!', 'success')
-            return redirect(url_for('equipments'))
-        return render_template('update_equipment.html', equipment=equipment)
+    # @app.route('/update_equipment/<int:equipment_id>', methods=['GET', 'POST'])
+    # @login_required
+    # def update_equipment(equipment_id):
+    #     equipment = Equipment.query.get_or_404(equipment_id)
+    #     if request.method == 'POST':
+    #         equipment.status = request.form['status']
+    #         db.session.commit()
+    #         flash('Equipment updated successfully!', 'success')
+    #         return redirect(url_for('equipments'))
+    #     return render_template('update_equipment.html', equipment=equipment)
 
     @app.route('/register', methods=['GET', 'POST'])
     def register():
@@ -168,6 +168,96 @@ def init_app(app):
         locations = Location.query.all()
         categories = Category.query.all()
         return render_template('add_equipment.html', locations=locations, categories=categories)
+
+    @app.route('/equipment/<int:equipment_id>')
+    @login_required
+    def equipment_details(equipment_id):
+        equipment = Equipment.query.get_or_404(equipment_id)
+        
+        # Fetch the latest service record if available
+        latest_service = Service.query.filter_by(equipment_id=equipment_id).order_by(Service.service_date.desc()).first()
+        
+        return render_template('equipment_details.html', equipment=equipment, latest_service=latest_service)
+
+    @app.route('/service_equipment/<int:equipment_id>', methods=['GET', 'POST'])
+    @login_required
+    def service_equipment(equipment_id):
+        equipment = Equipment.query.get_or_404(equipment_id)
+
+        if request.method == 'POST':
+            service_date = request.form['service_date']
+            service_description = request.form['service_description']
+            service_hours = request.form['service_hours']
+            service_cost = request.form['service_cost']
+            service_next_date = request.form['service_next_date']
+            
+            # Convert dates from string to date objects
+            service_date = datetime.strptime(service_date, '%Y-%m-%d').date()
+            service_next_date = datetime.strptime(service_next_date, '%Y-%m-%d').date() if service_next_date else None
+
+            new_service = Service(
+                service_date=service_date,
+                service_description=service_description,
+                service_hours=service_hours,
+                service_cost=service_cost,
+                service_next_date=service_next_date,
+                service_by=current_user,  # Logged-in user performing the service
+                equipment=equipment
+            )
+
+            db.session.add(new_service)
+            db.session.commit()
+            flash('Service record added successfully!', 'success')
+            return redirect(url_for('equipment_details', equipment_id=equipment_id))
+
+        return render_template('service_equipment.html', equipment=equipment)
+
+    @app.route('/update_equipment/<int:equipment_id>', methods=['GET', 'POST'])
+    @login_required
+    def update_equipment(equipment_id):
+        equipment = Equipment.query.get_or_404(equipment_id)
+
+        if request.method == 'POST':
+            equipment.equipment_name = request.form['equipment_name']
+            equipment.serial_number = request.form['serial_number']
+            equipment.purchase_date = datetime.strptime(request.form['purchase_date'], '%Y-%m-%d').date() if request.form['purchase_date'] else None
+            equipment.warranty_expiry = datetime.strptime(request.form['warranty_expiry'], '%Y-%m-%d').date() if request.form['warranty_expiry'] else None
+            equipment.status = request.form['status']
+            equipment.location_id = request.form['location_id']
+            equipment.category_id = request.form['category_id']
+
+            # Handle multiple image uploads
+            images = request.files.getlist('equipment_pictures')
+            for image in images:
+                if image and '.' in image.filename and image.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
+                    filename = secure_filename(image.filename)
+                    image_path = os.path.join(UPLOAD_FOLDER, filename)
+                    image.save(image_path)
+
+                    # Save to database
+                    new_image = EquipmentImage(filename=filename, equipment=equipment)
+                    db.session.add(new_image)
+
+            db.session.commit()
+            flash('Equipment updated successfully!', 'success')
+            return redirect(url_for('equipment_details', equipment_id=equipment_id))
+
+        locations = Location.query.all()
+        categories = Category.query.all()
+        return render_template('update_equipment.html', equipment=equipment, locations=locations, categories=categories)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     @app.route('/add_location', methods=['GET', 'POST'])
     @login_required

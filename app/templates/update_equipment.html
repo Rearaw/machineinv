@@ -1,16 +1,67 @@
 {% extends "base.html" %}
-{% block title %}Update Equipment{% endblock %}
+{% block title %}Edit Equipment{% endblock %}
 {% block content %}
-<h2>Change Status: {{ equipment.equipment_name }}</h2>
-<form method="post">
-  <div class="mb-3">
-    <label for="status" class="form-label">Machine Status</label>
-    <select class="form-select" id="status" name="status" required>
-      <option value="online" {% if equipment and equipment.status == "online" %}selected{% endif %}>🟢 Online</option>
-      <option value="offline" {% if equipment and equipment.status == "offline" %}selected{% endif %}>🔴 Offline</option>
-      <option value="serviced" {% if equipment and equipment.status == "serviced" %}selected{% endif %}>🟡 Serviced</option>
-    </select>
-  </div>
-  <button type="submit" class="btn btn-primary">Update</button>
-</form>
+<h2>Edit Equipment: {{ equipment.equipment_name }}</h2>
+
+<div class="card shadow-sm p-4">
+  <form method="post">
+    <div class="mb-3">
+      <label for="equipment_name" class="form-label">Equipment Name</label>
+      <input type="text" class="form-control" id="equipment_name" name="equipment_name" value="{{ equipment.equipment_name }}" required>
+    </div>
+    <div class="mb-3">
+      <label for="serial_number" class="form-label">Serial Number</label>
+      <input type="text" class="form-control" id="serial_number" name="serial_number" value="{{ equipment.serial_number }}" required>
+    </div>
+    <div class="mb-3">
+      <label for="purchase_date" class="form-label">Purchase Date</label>
+      <input type="date" class="form-control" id="purchase_date" name="purchase_date" value="{{ equipment.purchase_date }}">
+    </div>
+    <div class="mb-3">
+      <label for="warranty_expiry" class="form-label">Warranty Expiry</label>
+      <input type="date" class="form-control" id="warranty_expiry" name="warranty_expiry" value="{{ equipment.warranty_expiry }}">
+    </div>
+
+    <!-- Status Dropdown -->
+    <div class="mb-3">
+      <label for="status" class="form-label">Status</label>
+      <select class="form-select" id="status" name="status" required>
+        <option value="Online" {% if equipment.status == "Online" %}selected{% endif %}>🟢 Online</option>
+        <option value="Offline" {% if equipment.status == "Offline" %}selected{% endif %}>🔴 Offline</option>
+        <option value="Serviced" {% if equipment.status == "Serviced" %}selected{% endif %}>🟡 Serviced</option>
+      </select>
+    </div>
+
+    <!-- Location Dropdown -->
+    <div class="mb-3">
+      <label for="location_id" class="form-label">Location</label>
+      <select class="form-select" id="location_id" name="location_id" required>
+        {% for location in locations %}
+        <option value="{{ location.location_id }}" {% if equipment.location_id == location.location_id %}selected{% endif %}>
+          {{ location.location_name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Category Dropdown -->
+    <div class="mb-3">
+      <label for="category_id" class="form-label">Category</label>
+      <select class="form-select" id="category_id" name="category_id" required>
+        {% for category in categories %}
+        <option value="{{ category.category_id }}" {% if equipment.category_id == category.category_id %}selected{% endif %}>
+          {{ category.category_name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="equipment_pictures" class="form-label">Upload Equipment Images</label>
+      <input type="file" class="form-control" id="equipment_pictures" name="equipment_pictures" multiple accept="image/*">
+    </div>
+    <button type="submit" class="btn btn-success">Update Equipment</button>
+    <a href="{{ url_for('equipment_details', equipment_id=equipment.equipment_id) }}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+
 {% endblock %}

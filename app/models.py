@@ -24,7 +24,16 @@ class User(db.Model, UserMixin):
     def get_id(self):
         return str(self.user_id)
 
-class Equipment(db.Model):  # One-to-One with Service, Many-to-One with Location & Category
+class EquipmentImage(db.Model):
+    __tablename__ = 'equipment_images'
+    image_id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(255), nullable=False)  # Stores the image filename
+    equipment_id = db.Column(db.Integer, db.ForeignKey("equipments.equipment_id"), nullable=False)
+
+    equipment = db.relationship("Equipment", back_populates="images")
+
+# Add relationship in Equipment model
+class Equipment(db.Model):
     __tablename__ = 'equipments'
     equipment_id = db.Column(db.Integer, primary_key=True)
     equipment_name = db.Column(db.String(100), nullable=False)
@@ -32,14 +41,13 @@ class Equipment(db.Model):  # One-to-One with Service, Many-to-One with Location
     purchase_date = db.Column(db.Date)
     warranty_expiry = db.Column(db.Date)
     status = db.Column(db.String(50))
-    equipment_picture = db.Column(db.String(100), nullable=False)
-
     location_id = db.Column(db.Integer, db.ForeignKey("locations.location_id"))
     category_id = db.Column(db.Integer, db.ForeignKey("categories.category_id"))
 
     location = db.relationship("Location", back_populates="equipments")
     category = db.relationship("Category", back_populates="equipments")
-    service = db.relationship("Service", back_populates="equipment", uselist=False)  # One-to-One
+    images = db.relationship("EquipmentImage", back_populates="equipment", cascade="all, delete-orphan")
+    services = db.relationship("Service", back_populates="equipment", cascade="all, delete-orphan")
 
 class Category(db.Model):  # One-to-Many with Equipment
     __tablename__ = "categories"
@@ -80,7 +88,7 @@ class Service(db.Model):  # One-to-One with Equipment & Component, Many-to-One w
     equipment_id = db.Column(db.Integer, db.ForeignKey("equipments.equipment_id"))
 
     service_by = db.relationship("User", back_populates="services")
-    equipment = db.relationship("Equipment", back_populates="service")
+    equipment = db.relationship("Equipment", back_populates="services")
     component = db.relationship("Component", back_populates="service", uselist=False)  # One-to-One
 
 class Role(db.Model):  # One-to-Many with Users

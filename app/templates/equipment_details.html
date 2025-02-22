@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Equipment Details{% endblock %}
+{% block content %}
+<h2>{{ equipment.equipment_name }}</h2>
+
+<!-- Determine the blinking background class based on status -->
+{% if equipment.status == "Online" %}
+  {% set blink_class = "blink-green" %}
+{% elif equipment.status == "Offline" %}
+  {% set blink_class = "blink-red" %}
+{% elif equipment.status == "Serviced" %}
+  {% set blink_class = "blink-yellow" %}
+{% else %}
+  {% set blink_class = "" %}
+{% endif %}
+
+<div class="card shadow-sm p-4">
+  <div class="row">
+    <div class="col-md-6">
+      <h4>Image Gallery</h4>
+      <div id="imageGallery" class="carousel slide {{ blink_class }}" data-bs-ride="carousel">
+        <div class="carousel-inner">
+          {% for image in equipment.images %}
+          <div class="carousel-item {% if loop.first %}active{% endif %}">
+            <img src="{{ url_for('static', filename='uploads/' ~ image.filename) }}" class="d-block w-100 rounded">
+          </div>
+          {% endfor %}
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#imageGallery" data-bs-slide="prev">
+          <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#imageGallery" data-bs-slide="next">
+          <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <h4>Details</h4>
+      <p><strong>Category:</strong> {{ equipment.category.category_name if equipment.category else 'Uncategorized' }}</p>
+      <p><strong>Status:</strong> <span class="badge bg-dark">{{ equipment.status }}</span></p>
+      <p><strong>Location:</strong> {{ equipment.location.location_name if equipment.location else 'Unknown' }}</p>
+      <p><strong>Time Online:</strong> {{ equipment.purchase_date.strftime('%Y-%m-%d') if equipment.purchase_date else 'N/A' }}</p>
+      <p><strong>Next Scheduled Service:</strong> 
+        {% if latest_service %} 
+          {{ latest_service.service_next_date.strftime('%Y-%m-%d') }} 
+        {% else %} 
+          Not Scheduled 
+        {% endif %}
+      </p>
+
+      <div class="d-flex gap-2">
+        <a href="{{ url_for('update_equipment', equipment_id=equipment.equipment_id) }}" class="btn btn-primary">Edit Equipment</a>
+        <a href="{{ url_for('service_equipment', equipment_id=equipment.equipment_id) }}" class="btn btn-warning">Service This Machine</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Blinking Background Effect -->
+<style>
+  @keyframes blink-green {
+    0% { background-color: rgba(0, 255, 0, 0.2); }
+    50% { background-color: rgba(0, 255, 0, 0.6); }
+    100% { background-color: rgba(0, 255, 0, 0.2); }
+  }
+
+  @keyframes blink-red {
+    0% { background-color: rgba(255, 0, 0, 0.2); }
+    50% { background-color: rgba(255, 0, 0, 0.6); }
+    100% { background-color: rgba(255, 0, 0, 0.2); }
+  }
+
+  @keyframes blink-yellow {
+    0% { background-color: rgba(255, 255, 0, 0.2); }
+    50% { background-color: rgba(255, 255, 0, 0.6); }
+    100% { background-color: rgba(255, 255, 0, 0.2); }
+  }
+
+  .blink-green { animation: blink-green 1.5s infinite alternate; }
+  .blink-red { animation: blink-red 1.5s infinite alternate; }
+  .blink-yellow { animation: blink-yellow 1.5s infinite alternate; }
+</style>
+
+{% endblock %}
