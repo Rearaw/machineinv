@@ -2,12 +2,12 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db, login_manager
-from app.models import User, Role, Equipment, Service,Component,Category,Location
+from app.models import User, Role, Equipment, Service,Component,Category,Location,EquipmentImage
 from werkzeug.utils import secure_filename
 import os.path
 
 UPLOAD_FOLDER = os.path.expanduser("~/machineinv/app/static/uploads")
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif','webp'}
 # Ensure upload directory exists
 if not os.path.exists(UPLOAD_FOLDER):
 
@@ -137,38 +137,48 @@ def init_app(app):
             status = request.form['status']
             location_id = request.form['location_id']
             category_id = request.form['category_id']
-            image = request.files['equipment_picture']  # File input
 
-            # Convert string dates to Python date objects
+            # Convert dates
             purchase_date = datetime.strptime(purchase_date, '%Y-%m-%d').date() if purchase_date else None
             warranty_expiry = datetime.strptime(warranty_expiry, '%Y-%m-%d').date() if warranty_expiry else None
 
-            # Handle image upload
-            filename = None
-            if image and '.' in image.filename and image.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
-                filename = secure_filename(image.filename)  # Secure the filename
-                image.save(os.path.join(UPLOAD_FOLDER, filename))  # Save image
-
+            # ✅ Create new equipment record
             new_equipment = Equipment(
                 equipment_name=equipment_name,
                 serial_number=serial_number,
                 purchase_date=purchase_date,
                 warranty_expiry=warranty_expiry,
                 status=status,
-                equipment_picture=filename,  # Store filename in DB
                 location_id=location_id,
                 category_id=category_id
             )
-
             db.session.add(new_equipment)
             db.session.commit()
-            flash('Equipment added successfully!', 'success')
+
+            # ✅ Handle image uploads
+            images = request.files.getlist('equipment_pictures')
+            print("Uploaded files:", images)  # Debugging
+
+            for image in images:
+                if image and '.' in image.filename and image.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
+                    filename = secure_filename(image.filename)
+                    image_path = os.path.join(UPLOAD_FOLDER, filename)
+                    image.save(image_path)
+
+                    # ✅ Debugging: Check if filename is correct
+                    print(f"Saving image: {filename} for equipment: {new_equipment.equipment_id}")
+
+                    # ✅ Fix: Ensure image reference is added to the database
+                    new_image = EquipmentImage(filename=filename, equipment=new_equipment)
+                    db.session.add(new_image)
+
+            db.session.commit()
+            flash('Equipment added successfully with images!', 'success')
             return redirect(url_for('equipments'))
 
         locations = Location.query.all()
         categories = Category.query.all()
         return render_template('add_equipment.html', locations=locations, categories=categories)
-
     @app.route('/equipment/<int:equipment_id>')
     @login_required
     def equipment_details(equipment_id):

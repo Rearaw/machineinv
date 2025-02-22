@@ -4,7 +4,7 @@
 <h2>Edit Equipment: {{ equipment.equipment_name }}</h2>
 
 <div class="card shadow-sm p-4">
-  <form method="post">
+  <form method="post" enctype="multipart/form-data">
     <div class="mb-3">
       <label for="equipment_name" class="form-label">Equipment Name</label>
       <input type="text" class="form-control" id="equipment_name" name="equipment_name" value="{{ equipment.equipment_name }}" required>
@@ -56,8 +56,8 @@
       </select>
     </div>
     <div class="mb-3">
-      <label for="equipment_pictures" class="form-label">Upload Equipment Images</label>
-      <input type="file" class="form-control" id="equipment_pictures" name="equipment_pictures" multiple accept="image/*">
+      <label for="equipment_picture" class="form-label">Upload Equipment Images</label>
+      <input type="file" class="form-control" id="equipment_picture" name="equipment_pictures" accept="image/*">
     </div>
     <button type="submit" class="btn btn-success">Update Equipment</button>
     <a href="{{ url_for('equipment_details', equipment_id=equipment.equipment_id) }}" class="btn btn-secondary">Cancel</a>

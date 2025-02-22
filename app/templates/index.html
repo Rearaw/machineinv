@@ -26,7 +26,7 @@
     <div class="card shadow-sm mb-4 w-100 {{ glow_class }}">  <!-- Apply the glow class -->
       <div class="card-img-top-container" style="width: 100%; height: 200px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
         {% if equipment.equipment_picture %}
-        <img src="{{ url_for('static', filename='uploads/' ~ equipment.equipment_picture) }}" class="card-img-top" style="max-height: 100%; width: auto;">
+        <img src="{{ url_for('static', filename='uploads/' ~ equipment.equipment_pictures) }}" class="card-img-top" style="max-height: 100%; width: auto;">
         {% else %}
         <img src="{{ url_for('static', filename='uploads/default.png') }}" class="card-img-top" style="max-height: 100%; width: auto;">
         {% endif %}
