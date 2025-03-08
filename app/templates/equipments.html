@@ -4,16 +4,62 @@
 <h2 class="mb-4">Equipments</h2>
 <a href="{{ url_for('add_equipment') }}" class="btn btn-primary mb-3">Add Equipment</a>
 
-<!-- Toggle switch for animations 
+<!-- Toggle switch for animations -->
 <div class="form-check form-switch mb-3">
   <input class="form-check-input" type="checkbox" id="toggleGlow" checked>
   <label class="form-check-label" for="toggleGlow">Enable Glow Effect</label>
-</div>-->
+</div>
+<!-- Search and Filter Form -->
+<!-- Toggle Button for Filters -->
+<button id="toggleFilters" class="btn btn-outline-secondary mb-3" type="button" aria-expanded="false" aria-label="Toggle filters">
+  <i class="fas fa-filter"></i> <!-- Filter icon -->
+</button>
 
-<div class="row">
+<!-- Filter Section (Collapsible) -->
+<div class="collapse" id="filtersCollapse">
+  <div class="row g-3 mb-4">
+      <div class="col-md-4">
+          <input type="text" class="form-control" id="searchInput" placeholder="Search by name or serial number">
+      </div>
+      <div class="col-md-2">
+          <select class="form-select filter-select" id="locationFilter">
+              <option value="">All Locations</option>
+              {% for location in locations %}
+              <option value="{{ location.location_id }}">{{ location.location_name }}</option>
+              {% endfor %}
+          </select>
+      </div>
+      <div class="col-md-2">
+          <select class="form-select filter-select" id="categoryFilter">
+              <option value="">All Categories</option>
+              {% for category in categories %}
+              <option value="{{ category.category_id }}">{{ category.category_name }}</option>
+              {% endfor %}
+          </select>
+      </div>
+      <div class="col-md-2">
+          <select class="form-select filter-select" id="statusFilter">
+              <option value="">All Status</option>
+              <option value="Online">Online</option>
+              <option value="Offline">Offline</option>
+              <option value="Serviced">Serviced</option>
+          </select>
+      </div>
+  </div>
+</div>
+
+
+<!-- Equipment List -->
+<div class="row" id="equipmentsContainer">
   {% for equipment in equipments %}
-  <div class="col-md-4 d-flex align-items-stretch">
-    <div class="card shadow-sm mb-4 w-100 equipment-card" data-status="{{ equipment.status }}">
+  <div class="col-md-4 d-flex align-items-stretch equipment-card"
+        data-name="{{ equipment.equipment_name | lower }}" 
+        data-serial="{{ equipment.serial_number }}" 
+        data-location="{{ equipment.location_id if equipment.location_id else '' }}" 
+        data-category="{{ equipment.category_id if equipment.category_id else '' }}" 
+        data-status="{{ equipment.status | lower }}">
+
+      <div class="card shadow-sm mb-4 w-100">
       <div class="card-img-top-container" style="width: 100%; height: 200px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #f8f9fa;">
         {% if equipment.images and equipment.images|length > 0 %}
           <img src="{{ url_for('static', filename='uploads/' ~ equipment.images[0].filename) }}" class="card-img-top" style="max-height: 100%; width: auto;">
@@ -25,7 +71,14 @@
         <h5 class="card-title">{{ equipment.equipment_name }}</h5>
         <p class="card-text">
           <strong>Category:</strong> {{ equipment.category.category_name if equipment.category else 'Uncategorized' }}<br>
-          <strong>Status:</strong> <span class="badge bg-dark">{{ equipment.status }}</span>
+          <strong>Location:</strong> {{ equipment.location.location_name}}<br>
+          <strong>Status:</strong>   <span class="badge bg-dark status-badge"
+                        data-equipment-id="{{ equipment.equipment_id }}"
+                        data-current-status="{{ equipment.status }}"
+                        data-bs-toggle="modal"
+                        data-bs-target="#statusModal">
+                    {{ equipment.status }}
+                  </span>
         </p>
         <div class="mt-auto">
           <a href="{{ url_for('equipment_details', equipment_id=equipment.equipment_id) }}" class="btn btn-sm btn-primary w-100">See More</a>
@@ -33,26 +86,26 @@
       </div>
     </div>
   </div>
-  {% endfor %}
+{% endfor %}
 </div>
 <!-- Custom CSS for pulsing glow effect -->
 <style>
   @keyframes pulse-green {
-    0% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.7); }
-    50% { box-shadow: 0 0 30px rgba(0, 255, 0, 1); }
-    100% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.7); }
+    0% { box-shadow: 0 0 10px rgba(0, 255, 0, 0.7); }
+    50% { box-shadow: 0 0 20px rgba(0, 255, 0, 1); }
+    100% { box-shadow: 0 0 10px rgba(0, 255, 0, 0.7); }
   }
 
   @keyframes pulse-red {
-    0% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.7); }
-    50% { box-shadow: 0 0 30px rgba(255, 0, 0, 1); }
-    100% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.7); }
+    0% { box-shadow: 0 0 10px rgba(255, 0, 0, 0.7); }
+    50% { box-shadow: 0 0 20px rgba(255, 0, 0, 1); }
+    100% { box-shadow: 0 0 10px rgba(255, 0, 0, 0.7); }
   }
 
   @keyframes pulse-yellow {
-    0% { box-shadow: 0 0 20px rgba(255, 255, 0, 0.7); }
-    50% { box-shadow: 0 0 30px rgba(255, 255, 0, 1); }
-    100% { box-shadow: 0 0 20px rgba(255, 255, 0, 0.7); }
+    0% { box-shadow: 0 0 10px rgba(255, 255, 0, 0.7); }
+    50% { box-shadow: 0 0 20px rgba(255, 255, 0, 1); }
+    100% { box-shadow: 0 0 30px rgba(255, 255, 0, 0.7); }
   }
 
   .glow-green { animation: pulse-green 1.5s infinite alternate; }
@@ -60,38 +113,172 @@
   .glow-yellow { animation: pulse-yellow 1.5s infinite alternate; }
 </style>
 
-<!-- JavaScript to Apply Glow Effect & Toggle -->
+<!-- JavaScript to change status -->
 <script>
-  document.addEventListener("DOMContentLoaded", function() {
-    let status = card.getAttribute("data-status").toLowerCase();
+  document.addEventListener("DOMContentLoaded", function () {
+      let statusBadges = document.querySelectorAll(".status-badge");
+      let statusForm = document.getElementById("statusForm");
+      
+      statusBadges.forEach(badge => {
+          badge.addEventListener("click", function () {
+              let equipmentId = this.getAttribute("data-equipment-id");
+              let currentStatus = this.getAttribute("data-current-status");
+  
+              // Set values in modal
+              document.getElementById("modalEquipmentId").value = equipmentId;
+              document.getElementById("modalStatus").value = currentStatus;
+          });
+      });
+  
+      statusForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+  
+          let equipmentId = document.getElementById("modalEquipmentId").value;
+          let newStatus = document.getElementById("modalStatus").value;
+  
+          fetch(`/update_status/${equipmentId}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: newStatus })
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  // ✅ Update the status badge instantly
+                  let updatedBadge = document.querySelector(`.status-badge[data-equipment-id="${equipmentId}"]`);
+                  if (updatedBadge) {
+                      updatedBadge.textContent = data.new_status;
+                      updatedBadge.setAttribute("data-current-status", data.new_status);
+                      
+                      // Change color based on new status
+                      updatedBadge.classList.remove("bg-dark", "bg-success", "bg-danger", "bg-warning");
+                      if (data.new_status === "Online") {
+                          updatedBadge.classList.add("bg-success");
+                      } else if (data.new_status === "Offline") {
+                          updatedBadge.classList.add("bg-danger");
+                      } else if (data.new_status === "Serviced") {
+                          updatedBadge.classList.add("bg-warning");
+                      }
+                  }
+  
+                  // ✅ Show success message
+                  alert("Status updated successfully!");
+  
+                  // ✅ Correctly close the modal
+                  let statusModalEl = document.getElementById("statusModal");
+                  let statusModal = bootstrap.Modal.getInstance(statusModalEl);
+                  if (statusModal) {
+                      statusModal.hide();
+                  }
+              } else {
+                  alert("Failed to update status.");
+              }
+          })
+          .catch(error => console.error("Error:", error));
+      });
+  });
+  </script>
+  <!-- javascript to filter -->
+  <script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Glow Effect Script
+    let cards = document.querySelectorAll(".equipment-card");
 
     // Apply initial glow based on status
     cards.forEach(card => {
-      let status = card.getAttribute("data-status");
-      console.log(status);
-      if (status === "online") card.classList.add("glow-green");
-      else if (status === "offline") card.classList.add("glow-red");
-      else if (status === "serviced") card.classList.add("glow-yellow");
+        let status = card.getAttribute("data-status").toLowerCase();
+        if (status === "online") {
+            card.classList.add("glow-green");
+        } else if (status === "offline") {
+            card.classList.add("glow-red");
+        } else if (status === "serviced") {
+            card.classList.add("glow-yellow");
+        }
     });
 
     // Toggle glow effect ON/OFF
-    document.getElementById("toggleGlow").addEventListener("change", function() {
-      if (this.checked) {
-        cards.forEach(card => card.classList.remove("no-glow"));
-      } else {
-        cards.forEach(card => card.classList.add("no-glow"));
-      }
-    });
+    let toggleGlow = document.getElementById("toggleGlow");
+    if (toggleGlow) {
+        toggleGlow.addEventListener("change", function () {
+            if (this.checked) {
+                cards.forEach(card => card.classList.remove("no-glow"));
+            } else {
+                cards.forEach(card => card.classList.add("no-glow"));
+            }
+        });
+    }
 
     // Disable animations when no-glow class is added
     const style = document.createElement("style");
     style.innerHTML = ".no-glow { animation: none !important; box-shadow: none !important; }";
     document.head.appendChild(style);
-  });
-</script>
 
+    // Get the toggle button and filter section
+    let toggleFiltersButton = document.getElementById("toggleFilters");
+    let filtersCollapse = document.getElementById("filtersCollapse");
+
+    // Toggle filters and change icon
+    toggleFiltersButton.addEventListener("click", function () {
+        // Toggle the collapse component
+        let isCollapsed = filtersCollapse.classList.contains("show");
+        if (isCollapsed) {
+            filtersCollapse.classList.remove("show");
+            toggleFiltersButton.innerHTML = '<i class="fas fa-filter"></i>'; // Filter icon
+        } else {
+            filtersCollapse.classList.add("show");
+            toggleFiltersButton.innerHTML = '<i class="fas fa-times"></i>'; // Close icon
+        }
+    });
+    
+    
+    
+    
+    // Filtering Script
+    let searchInput = document.getElementById("searchInput");
+    let locationFilter = document.getElementById("locationFilter");
+    let categoryFilter = document.getElementById("categoryFilter");
+    let statusFilter = document.getElementById("statusFilter");
+    let equipmentCards = document.querySelectorAll(".equipment-card");
+
+    function filterEquipments() {
+        let searchText = searchInput.value.toLowerCase();
+        let selectedLocation = locationFilter.value;
+        let selectedCategory = categoryFilter.value;
+        let selectedStatus = statusFilter.value.toLowerCase();
+
+        equipmentCards.forEach(card => {
+            let name = card.getAttribute("data-name").toLowerCase();
+            let serial = card.getAttribute("data-serial").toLowerCase();
+            let location = card.getAttribute("data-location");
+            let category = card.getAttribute("data-category");
+            let status = card.getAttribute("data-status").toLowerCase();
+
+            // Debugging: Log values to console
+            console.log(`Name: ${name}, Serial: ${serial}, Location: ${location}, Category: ${category}, Status: ${status}`);
+
+            // Check if card matches filters
+            let matchesSearch = name.includes(searchText) || serial.includes(searchText);
+            let matchesLocation = selectedLocation === "" || location === selectedLocation;
+            let matchesCategory = selectedCategory === "" || category === selectedCategory;
+            let matchesStatus = selectedStatus === "" || status === selectedStatus;
+
+            // Show or hide card based on filters
+            if (matchesSearch && matchesLocation && matchesCategory && matchesStatus) {
+            card.classList.remove("d-none"); // Show the card
+            } else {
+            card.classList.add("d-none"); // Hide the card
+         }
+        });
+    }
+
+    // Add event listeners to filter inputs
+    searchInput.addEventListener("input", filterEquipments);
+    locationFilter.addEventListener("change", filterEquipments);
+    categoryFilter.addEventListener("change", filterEquipments);
+    statusFilter.addEventListener("change", filterEquipments);
+});
+
+   </script>
+    
+    
 {% endblock %}
-
-
-
-

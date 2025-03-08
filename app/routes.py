@@ -5,9 +5,10 @@ from app import db, login_manager
 from app.models import User, Role, Equipment, Service,Component,Category,Location,EquipmentImage
 from werkzeug.utils import secure_filename
 import os.path
-
+from flask import request, jsonify
 UPLOAD_FOLDER = os.path.expanduser("~/machineinv/app/static/uploads")
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif','webp'}
+
 # Ensure upload directory exists
 if not os.path.exists(UPLOAD_FOLDER):
 
@@ -49,11 +50,44 @@ def init_app(app):
         flash('Logged out successfully!', 'success')
         return redirect(url_for('index'))
 
-    @app.route('/equipments')
+    @app.route('/equipments', methods=['GET'])
     @login_required
     def equipments():
-        equipments = Equipment.query.all()
-        return render_template('equipments.html', equipments=equipments)
+        search_query = request.args.get('search', '').strip()
+        location_filter = request.args.get('location', '')
+        category_filter = request.args.get('category', '')
+        status_filter = request.args.get('status', '')
+
+        query = Equipment.query
+
+        # Apply search filter (by name or serial number)
+        if search_query:
+            query = query.filter(
+                (Equipment.equipment_name.ilike(f"%{search_query}%")) | 
+                (Equipment.serial_number.ilike(f"%{search_query}%"))
+            )
+
+        # Apply location filter
+        if location_filter:
+            query = query.filter(Equipment.location_id == location_filter)
+
+        # Apply category filter
+        if category_filter:
+            query = query.filter(Equipment.category_id == category_filter)
+
+        # Apply status filter
+        if status_filter:
+            query = query.filter(Equipment.status == status_filter)
+
+        # Get filtered results
+        equipments = query.all()
+
+        # Get all locations and categories for the filter dropdowns
+        locations = Location.query.all()
+        categories = Category.query.all()
+
+        return render_template('equipments.html', equipments=equipments, locations=locations, categories=categories)
+
 
     # @app.route('/update_equipment/<int:equipment_id>', methods=['GET', 'POST'])
     # @login_required
@@ -256,19 +290,6 @@ def init_app(app):
         categories = Category.query.all()
         return render_template('update_equipment.html', equipment=equipment, locations=locations, categories=categories)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     @app.route('/add_location', methods=['GET', 'POST'])
     @login_required
     def add_location():
@@ -333,6 +354,18 @@ def init_app(app):
         flash('Component deleted successfully!', 'success')
         return redirect(url_for('components'))
 
+    @app.route('/update_status/<int:equipment_id>', methods=['POST'])
+    @login_required
+    def update_status(equipment_id):
+        equipment = Equipment.query.get_or_404(equipment_id)
+        data = request.get_json()
+        
+        if 'status' in data:
+            equipment.status = data['status']
+            db.session.commit()
+            return jsonify({"success": True, "new_status": equipment.status})
+        
+        return jsonify({"success": False}), 400
 
     @app.errorhandler(404)
     def page_not_found(error):

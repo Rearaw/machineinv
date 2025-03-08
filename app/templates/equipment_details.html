@@ -38,7 +38,13 @@
     <div class="col-md-6">
       <h4>Details</h4>
       <p><strong>Category:</strong> {{ equipment.category.category_name if equipment.category else 'Uncategorized' }}</p>
-      <p><strong>Status:</strong> <span class="badge bg-dark">{{ equipment.status }}</span></p>
+      <p><strong>Status:</strong> <span class="badge bg-dark status-badge"
+                                        data-equipment-id="{{ equipment.equipment_id }}"
+                                        data-current-status="{{ equipment.status }}"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#statusModal">
+          {{ equipment.status }}
+        </span></p>
       <p><strong>Location:</strong> {{ equipment.location.location_name if equipment.location else 'Unknown' }}</p>
       <p><strong>Time Online:</strong> {{ equipment.purchase_date.strftime('%Y-%m-%d') if equipment.purchase_date else 'N/A' }}</p>
       <p><strong>Next Scheduled Service:</strong> 
@@ -81,5 +87,71 @@
   .blink-red { animation: blink-red 1.5s infinite alternate; }
   .blink-yellow { animation: blink-yellow 1.5s infinite alternate; }
 </style>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+      let statusBadges = document.querySelectorAll(".status-badge");
+      let statusForm = document.getElementById("statusForm");
+      
+      statusBadges.forEach(badge => {
+          badge.addEventListener("click", function () {
+              let equipmentId = this.getAttribute("data-equipment-id");
+              let currentStatus = this.getAttribute("data-current-status");
+  
+              // Set values in modal
+              document.getElementById("modalEquipmentId").value = equipmentId;
+              document.getElementById("modalStatus").value = currentStatus;
+          });
+      });
+  
+      statusForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+  
+          let equipmentId = document.getElementById("modalEquipmentId").value;
+          let newStatus = document.getElementById("modalStatus").value;
+  
+          fetch(`/update_status/${equipmentId}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: newStatus })
+          })
+          .then(response => response.json())
+          .then(data => {
+              if (data.success) {
+                  // ✅ Update the status badge instantly
+                  let updatedBadge = document.querySelector(`.status-badge[data-equipment-id="${equipmentId}"]`);
+                  if (updatedBadge) {
+                      updatedBadge.textContent = data.new_status;
+                      updatedBadge.setAttribute("data-current-status", data.new_status);
+                      
+                      // Change color based on new status
+                      updatedBadge.classList.remove("bg-dark", "bg-success", "bg-danger", "bg-warning");
+                      if (data.new_status === "Online") {
+                          updatedBadge.classList.add("bg-success");
+                      } else if (data.new_status === "Offline") {
+                          updatedBadge.classList.add("bg-danger");
+                      } else if (data.new_status === "Serviced") {
+                          updatedBadge.classList.add("bg-warning");
+                      }
+                  }
+  
+                  // ✅ Show success message
+                  alert("Status updated successfully!");
+  
+                  // ✅ Correctly close the modal
+                  let statusModalEl = document.getElementById("statusModal");
+                  let statusModal = bootstrap.Modal.getInstance(statusModalEl);
+                  if (statusModal) {
+                      statusModal.hide();
+                  }
+              } else {
+                  alert("Failed to update status.");
+              }
+          })
+          .catch(error => console.error("Error:", error));
+      });
+  });
+  </script>
+  
+  
 
 {% endblock %}
