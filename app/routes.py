@@ -4,15 +4,16 @@ from flask_login import login_user, logout_user, login_required, current_user
 from app import db, login_manager
 from app.models import User, Role, Equipment, Service,Component,Category,Location,EquipmentImage
 from werkzeug.utils import secure_filename
-import os.path
+import os
 from flask import request, jsonify
-UPLOAD_FOLDER = os.path.expanduser("~/machineinv/app/static/uploads")
+BASE_DIR=os.path.abspath(os.path.dirname(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR,"static","uploads")
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif','webp'}
 
 # Ensure upload directory exists
 if not os.path.exists(UPLOAD_FOLDER):
 
-    os.makedirs(UPLOAD_FOLDER)
+    os.makedirs(UPLOAD_FOLDER,exist_ok=True)
 
 
 def init_app(app):
