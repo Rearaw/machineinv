@@ -219,10 +219,11 @@ def init_app(app):
     def equipment_details(equipment_id):
         equipment = Equipment.query.get_or_404(equipment_id)
         
-        # Fetch the latest service record if available
-        latest_service = Service.query.filter_by(equipment_id=equipment_id).order_by(Service.service_date.desc()).first()
-        
-        return render_template('equipment_details.html', equipment=equipment, latest_service=latest_service)
+        # Fetch all service records for this equipment
+        service_records = Service.query.filter_by(equipment_id=equipment_id).order_by(Service.service_date.desc()).all()
+
+        return render_template('equipment_details.html', equipment=equipment, service_records=service_records)
+
 
     @app.route('/service_equipment/<int:equipment_id>', methods=['GET', 'POST'])
     @login_required

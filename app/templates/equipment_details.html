@@ -3,22 +3,11 @@
 {% block content %}
 <h2>{{ equipment.equipment_name }}</h2>
 
-<!-- Determine the blinking background class based on status -->
-{% if equipment.status == "Online" %}
-  {% set blink_class = "blink-green" %}
-{% elif equipment.status == "Offline" %}
-  {% set blink_class = "blink-red" %}
-{% elif equipment.status == "Serviced" %}
-  {% set blink_class = "blink-yellow" %}
-{% else %}
-  {% set blink_class = "" %}
-{% endif %}
-
 <div class="card shadow-sm p-4">
   <div class="row">
     <div class="col-md-6">
       <h4>Image Gallery</h4>
-      <div id="imageGallery" class="carousel slide {{ blink_class }}" data-bs-ride="carousel">
+      <div id="imageGallery" class="carousel slide" data-bs-ride="carousel">
         <div class="carousel-inner">
           {% for image in equipment.images %}
           <div class="carousel-item {% if loop.first %}active{% endif %}">
@@ -38,18 +27,12 @@
     <div class="col-md-6">
       <h4>Details</h4>
       <p><strong>Category:</strong> {{ equipment.category.category_name if equipment.category else 'Uncategorized' }}</p>
-      <p><strong>Status:</strong> <span class="badge bg-dark status-badge"
-                                        data-equipment-id="{{ equipment.equipment_id }}"
-                                        data-current-status="{{ equipment.status }}"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#statusModal">
-          {{ equipment.status }}
-        </span></p>
+      <p><strong>Status:</strong> <span class="badge bg-dark">{{ equipment.status }}</span></p>
       <p><strong>Location:</strong> {{ equipment.location.location_name if equipment.location else 'Unknown' }}</p>
       <p><strong>Time Online:</strong> {{ equipment.purchase_date.strftime('%Y-%m-%d') if equipment.purchase_date else 'N/A' }}</p>
       <p><strong>Next Scheduled Service:</strong> 
-        {% if latest_service %} 
-          {{ latest_service.service_next_date.strftime('%Y-%m-%d') }} 
+        {% if service_records %} 
+          {{ service_records[0].service_next_date.strftime('%Y-%m-%d') }} 
         {% else %} 
           Not Scheduled 
         {% endif %}
@@ -63,30 +46,41 @@
   </div>
 </div>
 
-<!-- Blinking Background Effect -->
-<style>
-  @keyframes blink-green {
-    0% { background-color: rgba(0, 255, 0, 0.2); }
-    50% { background-color: rgba(0, 255, 0, 0.6); }
-    100% { background-color: rgba(0, 255, 0, 0.2); }
-  }
+<!-- Service History Section -->
+{% if service_records %}
+<div class="card shadow-sm mt-4 p-4">
+  <h4>Service History</h4>
+  <table class="table table-bordered mt-3">
+    <thead class="table-dark">
+      <tr>
+        <th>Date</th>
+        <th>Description</th>
+        <th>Hours</th>
+        <th>Cost</th>
+        <th>Next Service</th>
+        <th>Serviced By</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for service in service_records %}
+      <tr>
+        <td>{{ service.service_date.strftime('%Y-%m-%d') }}</td>
+        <td>{{ service.service_description }}</td>
+        <td>{{ service.service_hours }}</td>
+        <td>${{ service.service_cost }}</td>
+        <td>{{ service.service_next_date.strftime('%Y-%m-%d') if service.service_next_date else 'Not Scheduled' }}</td>
+        <td>{{ service.service_by.username if service.service_by else 'Unknown' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="alert alert-info mt-4">No service history available for this equipment.</div>
+{% endif %}
 
-  @keyframes blink-red {
-    0% { background-color: rgba(255, 0, 0, 0.2); }
-    50% { background-color: rgba(255, 0, 0, 0.6); }
-    100% { background-color: rgba(255, 0, 0, 0.2); }
-  }
 
-  @keyframes blink-yellow {
-    0% { background-color: rgba(255, 255, 0, 0.2); }
-    50% { background-color: rgba(255, 255, 0, 0.6); }
-    100% { background-color: rgba(255, 255, 0, 0.2); }
-  }
 
-  .blink-green { animation: blink-green 1.5s infinite alternate; }
-  .blink-red { animation: blink-red 1.5s infinite alternate; }
-  .blink-yellow { animation: blink-yellow 1.5s infinite alternate; }
-</style>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
       let statusBadges = document.querySelectorAll(".status-badge");
