@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Edit Location{% endblock %}
+{% block content %}
+<h2>Edit Location</h2>
+
+<div class="card p-4">
+  <form method="post">
+    <div class="mb-3">
+      <label for="location_name" class="form-label">Location Name</label>
+      <input type="text" class="form-control" id="location_name" name="location_name" value="{{ location.location_name }}" required>
+    </div>
+    <div class="mb-3">
+      <label for="location_description" class="form-label">Description</label>
+      <input type="text" class="form-control" id="location_description" name="location_description" value="{{ location.location_description }}">
+    </div>
+    <button type="submit" class="btn btn-success">Update Location</button>
+    <a href="{{ url_for('locations') }}" class="btn btn-secondary">Cancel</a>
+  </form>
+</div>
+
+{% endblock %}

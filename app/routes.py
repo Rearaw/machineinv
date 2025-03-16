@@ -214,6 +214,35 @@ def init_app(app):
         locations = Location.query.all()
         categories = Category.query.all()
         return render_template('add_equipment.html', locations=locations, categories=categories)
+    @app.route('/delete_equipment/<int:equipment_id>', methods=['POST'])
+    @login_required
+    def delete_equipment(equipment_id):
+        equipment = Equipment.query.get_or_404(equipment_id)
+
+        try:
+            # Delete all related images
+            for image in equipment.images:
+                image_path = os.path.join(UPLOAD_FOLDER, image.filename)
+                if os.path.exists(image_path):
+                    os.remove(image_path)  # ✅ Delete image file from storage
+                db.session.delete(image)  # ✅ Remove image record from database
+
+            # Delete related service records
+            Service.query.filter_by(equipment_id=equipment_id).delete()
+
+            # Delete the equipment itself
+            db.session.delete(equipment)
+            db.session.commit()
+
+            return jsonify({"success": True})
+        
+        except Exception as e:
+            print("Error deleting equipment:", e)
+            return jsonify({"success": False}), 500
+    
+    
+    
+    
     @app.route('/equipment/<int:equipment_id>')
     @login_required
     def equipment_details(equipment_id):
@@ -308,16 +337,45 @@ def init_app(app):
 
         return render_template('add_location.html')
 
-    @app.route('/delete_location/<int:location_id>')
+    @app.route('/delete_location/<int:location_id>', methods=['POST'])
     @login_required
     def delete_location(location_id):
         location = Location.query.get_or_404(location_id)
-        db.session.delete(location)
-        db.session.commit()
-        flash('Location deleted successfully!', 'success')
-        return redirect(url_for('locations'))
+
+        try:
+            db.session.delete(location)
+            db.session.commit()
+            return jsonify({"success": True})
+        except Exception as e:
+            print("Error deleting location:", e)
+            return jsonify({"success": False}), 500
 
 
+
+    @app.route('/locations')
+    @login_required
+    def locations():
+        all_locations = Location.query.all()
+        return render_template('locations.html', locations=all_locations)
+    
+    @app.route('/edit_location/<int:location_id>', methods=['GET', 'POST'])
+    @login_required
+    def edit_location(location_id):
+        location = Location.query.get_or_404(location_id)
+
+        if request.method == 'POST':
+            location.location_name = request.form['location_name']
+            location.location_description = request.form['location_description']
+            db.session.commit()
+            flash("Location updated successfully!", "success")
+            return redirect(url_for('locations'))
+
+        return render_template('edit_location.html', location=location)
+   
+    
+    
+    
+    
     @app.route('/components')
     @login_required
     def components():
