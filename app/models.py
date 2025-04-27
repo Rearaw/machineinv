@@ -97,3 +97,13 @@ class Role(db.Model):  # One-to-Many with Users
     role_name = db.Column(db.String(100), nullable=False)
 
     users = db.relationship("User", back_populates="role")
+    @staticmethod
+    def insert_roles():
+        predefined_roles = ['admin', 'technician']
+
+        for role_name in predefined_roles:
+            role = Role.query.filter_by(role_name=role_name).first()
+            if role is None:
+                new_role = Role(role_name=role_name)
+                db.session.add(new_role)
+        db.session.commit()

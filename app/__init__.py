@@ -25,5 +25,7 @@ def create_app():
     # Create database tables (if they don't exist)
     with app.app_context():
         db.create_all()
+        Role.insert_roles()
+
 
     return app
