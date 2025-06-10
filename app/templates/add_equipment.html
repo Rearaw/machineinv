@@ -1,52 +1,80 @@
 {% extends "base.html" %}
 {% block title %}Add Equipment{% endblock %}
 {% block content %}
-<h2>Add Equipment</h2>
-<form method="post" enctype="multipart/form-data">
-  <div class="mb-3">
-    <label for="equipment_name" class="form-label">Equipment Name</label>
-    <input type="text" class="form-control" id="equipment_name" name="equipment_name" required>
-  </div>
-  <div class="mb-3">
-    <label for="serial_number" class="form-label">Serial Number</label>
-    <input type="text" class="form-control" id="serial_number" name="serial_number" required>
-  </div>
-  <div class="mb-3">
-    <label for="purchase_date" class="form-label">Purchase Date</label>
-    <input type="date" class="form-control" id="purchase_date" name="purchase_date">
-  </div>
-  <div class="mb-3">
-    <label for="warranty_expiry" class="form-label">Warranty Expiry</label>
-    <input type="date" class="form-control" id="warranty_expiry" name="warranty_expiry">
-  </div>
-  <div class="mb-3">
-    <label for="status" class="form-label">Machine Status</label>
-    <select class="form-select" id="status" name="status" required>
-      <option value="online" {% if equipment and equipment.status == "online" %}selected{% endif %}>🟢 Online</option>
-      <option value="offline" {% if equipment and equipment.status == "offline" %}selected{% endif %}>🔴 Offline</option>
-      <option value="serviced" {% if equipment and equipment.status == "serviced" %}selected{% endif %}>🟡 Serviced</option>
-    </select>
-  </div>
-  <div class="mb-3">
-    <label for="equipment_picture" class="form-label">Upload Equipment Image</label>
-    <input type="file" class="form-control" id="equipment_picture" name="equipment_pictures" accept="image/*">
-  </div>
-  <div class="mb-3">
-    <label for="location_id" class="form-label">Location</label>
-    <select class="form-select" id="location_id" name="location_id" required>
-      {% for location in locations %}
-      <option value="{{ location.location_id }}">{{ location.location_name }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="mb-3">
-    <label for="category_id" class="form-label">Category</label>
-    <select class="form-select" id="category_id" name="category_id" required>
-      {% for category in categories %}
-      <option value="{{ category.category_id }}">{{ category.category_name }}</option>
-      {% endfor %}
-    </select>
-  </div>
-  <button type="submit" class="btn btn-primary">Add Equipment</button>
-</form>
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/addequipments.css') }}">
+
+
+<div class="form-container">
+    <h2>Add Equipment</h2>
+    <form method="post" enctype="multipart/form-data">
+        <!-- Equipment Name -->
+        <div class="form-group">
+            <input type="text" class="adaptive-input" id="equipment_name" name="equipment_name" required>
+            <label for="equipment_name" placeholder="Equipment Name" alt="Enter equipment name"></label>
+        </div>
+        
+        <!-- Serial Number -->
+        <div class="form-group">
+            <input type="text" class="adaptive-input" id="serial_number" name="serial_number" required>
+            <label for="serial_number" placeholder="Serial Number" alt="Enter serial number"></label>
+        </div>
+        
+        <!-- Purchase Date -->
+        <div class="form-group">
+            <input type="date" class="adaptive-input" id="purchase_date" name="purchase_date" >
+            <label for="purchase_date" placeholder="Purchase Date" alt="Select purchase date"></label>
+        </div>
+        
+        <!-- Warranty Expiry -->
+        <div class="form-group">
+            <input type="date" class="adaptive-input" id="warranty_expiry" name="warranty_expiry">
+            <label for="warranty_expiry" placeholder="Warranty Expiry" alt="Select warranty expiry"></label>
+        </div>
+        
+        <!-- Machine Status (select) -->
+        <div class="form-group">
+            <label for="status" class="form-label">Machine Status</label>
+            <select class="form-select" id="status" name="status" required>
+                <option value="online" {% if equipment and equipment.status == "online" %}selected{% endif %}>🟢 Online</option>
+                <option value="offline" {% if equipment and equipment.status == "offline" %}selected{% endif %}>🔴 Offline</option>
+                <option value="serviced" {% if equipment and equipment.status == "serviced" %}selected{% endif %}>🟡 Serviced</option>
+            </select>
+        </div>
+        
+        <!-- Equipment Image (file input) -->
+        <div class="form-group">
+            <label for="equipment_picture" class="form-label">Upload Equipment Image</label>
+            <input type="file" class="form-control" id="equipment_picture" name="equipment_pictures" accept="image/*">
+        </div>
+        
+        <!-- Location (select) -->
+        <div class="form-group">
+            <label for="location_id" class="form-label">Location</label>
+            <select class="form-select" id="location_id" name="location_id" required>
+                {% for location in locations %}
+                <option value="{{ location.location_id }}">{{ location.location_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <!-- Category (select) -->
+        <div class="form-group">
+            <label for="category_id" class="form-label">Category</label>
+            <select class="form-select" id="category_id" name="category_id" required>
+                {% for category in categories %}
+                <option value="{{ category.category_id }}">{{ category.category_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Add Equipment</button>
+    </form>
+</div>
+<script>
+    $(document).ready(function(){
+    $('#serial_number').mask('0000-0000-0000-0000');
+    $('#purchase_date').mask('00/00/0000');
+    $('#warranty_expiry').mask('00/00/0000');
+ })
+</script>
 {% endblock %}

@@ -1,0 +1,105 @@
+   /* Adaptive Placeholder Styles */
+   .form-group {
+    position: relative;
+    margin-bottom: 1.5em;
+    width: 100%;
+}
+
+.adaptive-input {
+    box-sizing: border-box;
+    width: 100%;
+    height: calc(3em + 2px);
+    margin: 0 0 1em;
+    padding: 1em;
+    border: 1px solid #ccc;
+    border-radius: 1.5em;
+    background: #fff;
+    outline: none;
+    font-family: inherit;
+    font-size: 1em;
+}
+
+.adaptive-input{
+    &:focus {
+        border-color: #00bafa;
+    }
+    
+    &:focus + label[placeholder]:before,
+    &:valid + label[placeholder]:before {
+        transform: translate(0, -1.5em) scale(.9, .9);
+        color: #00bafa;
+        transition-duration: .2s;
+    }
+    
+    &:invalid + label[placeholder][alt]:before {
+        content: attr(alt);
+    }
+}
+
+.adaptive-input + label[placeholder] {
+    display: block;
+    pointer-events: none;
+    line-height: 1.25em;
+    margin-top: calc(-3em - 2px);
+    margin-bottom: calc((3em - 1em) + 2px);
+}
+
+.adaptive-input + label[placeholder]:before {
+    content: attr(placeholder);
+    display: inline-block;
+    margin: 0 calc(1em + 2px);
+    padding: 0 2px;
+    color: #898989;
+    white-space: nowrap;
+    transition: .3s ease-in-out;
+    background-image: linear-gradient(to bottom, #fff, #fff);
+    background-size: 100% 5px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Date inputs */
+input[type="date"].adaptive-input {
+    padding-top: 0.9em;
+    padding-bottom: 0.9em;
+}
+
+/* Select and file inputs keep original styling */
+.form-select, .form-control[type="file"] {
+    width: 100%;
+    padding: 0.8em;
+    border: 1px solid #ced4da;
+    border-radius: 1.5em;
+    margin-bottom: 1.5em;
+    font-family: inherit;
+    font-size: 1em;
+}
+
+/* Button styling */
+.btn-primary {
+    background-color: #00bafa;
+    border-color: #00bafa;
+    padding: 0.8em 1.5em;
+    border-radius: 1.5em;
+    font-size: 1em;
+    margin-top: 1em;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #0095d9;
+    border-color: #0095d9;
+}
+
+/* Form container */
+.form-container {
+    max-width: 600px;
+    width: 100%;
+    padding: 2em;
+}
+
+h2 {
+    color: #333;
+    margin-bottom: 1.5em;
+    text-align: center;
+}
