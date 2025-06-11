@@ -1,16 +1,19 @@
 {% extends "base.html" %}
 {% block title %}Add Location{% endblock %}
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/addequipments.css') }}">
+<div class="registration-form">
 <h2>Add Location</h2>
 <form method="post">
   <div class="mb-3">
-    <label for="location_name" class="form-label">Location Name</label>
-    <input type="text" class="form-control" id="location_name" name="location_name" required>
+    <input type="text" class="adaptive-input" id="location_name" name="location_name" required>
+    <label for="location_name" placeholder="location name" alt="Enter location"></label>
   </div>
   <div class="mb-3">
-    <label for="location_description" class="form-label">Description</label>
-    <textarea class="form-control" id="location_description" name="location_description" rows="3" required></textarea>
+    <textarea class="adaptive-input" id="location_description" name="location_description" rows="3" required></textarea>
+    <label for="location_description" placeholder="description" alt="Describe Location"></label>
   </div>
   <button type="submit" class="btn btn-primary">Add Location</button>
 </form>
+</div>
 {% endblock %}
