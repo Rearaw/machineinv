@@ -1,29 +1,29 @@
 {% extends "base.html" %}
 {% block title %}Edit Equipment{% endblock %}
 {% block content %}
-<h2>Edit Equipment: {{ equipment.equipment_name }}</h2>
 
-<div class="card shadow-sm p-4">
+<div class="registration-form">
   <form method="post" enctype="multipart/form-data">
-    <div class="mb-3">
+    <div class="form-group">
+      <h2>Edit Equipment <!--{{ equipment.equipment_name }}--></h2>
       <label for="equipment_name" class="form-label">Equipment Name</label>
-      <input type="text" class="form-control" id="equipment_name" name="equipment_name" value="{{ equipment.equipment_name }}" required>
+      <input type="text" class="adaptive-input" id="equipment_name" name="equipment_name" value="{{ equipment.equipment_name }}" required>
     </div>
-    <div class="mb-3">
+    <div class="form-group">
       <label for="serial_number" class="form-label">Serial Number</label>
-      <input type="text" class="form-control" id="serial_number" name="serial_number" value="{{ equipment.serial_number }}" required>
+      <input type="text" class="adaptive-input" id="serial_number" name="serial_number" value="{{ equipment.serial_number }}" required>
     </div>
-    <div class="mb-3">
+    <div class="form-group">
       <label for="purchase_date" class="form-label">Purchase Date</label>
-      <input type="date" class="form-control" id="purchase_date" name="purchase_date" value="{{ equipment.purchase_date }}">
+      <input type="date" class="adaptive-input" id="purchase_date" name="purchase_date" value="{{ equipment.purchase_date }}">
     </div>
-    <div class="mb-3">
+    <div class="form-group">
       <label for="warranty_expiry" class="form-label">Warranty Expiry</label>
-      <input type="date" class="form-control" id="warranty_expiry" name="warranty_expiry" value="{{ equipment.warranty_expiry }}">
+      <input type="date" class="adaptive-input" id="warranty_expiry" name="warranty_expiry" value="{{ equipment.warranty_expiry }}">
     </div>
 
     <!-- Status Dropdown -->
-    <div class="mb-3">
+    <div class="form-group">
       <label for="status" class="form-label">Status</label>
       <select class="form-select" id="status" name="status" required>
         <option value="Online" {% if equipment.status == "Online" %}selected{% endif %}>🟢 Online</option>
@@ -33,7 +33,7 @@
     </div>
 
     <!-- Location Dropdown -->
-    <div class="mb-3">
+    <div class="form-group">
       <label for="location_id" class="form-label">Location</label>
       <select class="form-select" id="location_id" name="location_id" required>
         {% for location in locations %}
@@ -45,7 +45,7 @@
     </div>
 
     <!-- Category Dropdown -->
-    <div class="mb-3">
+    <div class="form-group">
       <label for="category_id" class="form-label">Category</label>
       <select class="form-select" id="category_id" name="category_id" required>
         {% for category in categories %}
@@ -55,12 +55,12 @@
         {% endfor %}
       </select>
     </div>
-    <div class="mb-3">
+    <div class="form-group">
       <label for="equipment_picture" class="form-label">Upload Equipment Images</label>
-      <input type="file" class="form-control" id="equipment_picture" name="equipment_pictures" accept="image/*">
+      <input type="file" class="adaptive-input" id="equipment_picture" name="equipment_pictures" accept="image/*">
     </div>
-    <button type="submit" class="btn btn-success">Update Equipment</button>
-    <a href="{{ url_for('equipment_details', equipment_id=equipment.equipment_id) }}" class="btn btn-secondary">Cancel</a>
+    <button type="submit" class="btn-outline-secondary">Update Equipment</button>
+    <a href="{{ url_for('equipment_details', equipment_id=equipment.equipment_id) }}" class="btn-outline-secondary">Cancel</a>
   </form>
 </div>
 
