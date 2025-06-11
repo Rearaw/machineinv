@@ -2,12 +2,12 @@
 {% block title %}Equipments{% endblock %}
 {% block content %}
 <h2 class="mb-4">Equipments</h2>
-<a href="{{ url_for('add_equipment') }}" class="btn btn-outline-secondary">Add Equipment</a>
+<div><a href="{{ url_for('add_equipment') }}" class="btn btn-outline-secondary">Add Equipment</a>
 
 <!-- Toggle Button for Filters -->
 <button id="toggleFilters" class="btn btn-outline-secondary mb-3" type="button" aria-expanded="false" aria-label="Toggle filters">
-  <i class="fas fa-filter"></i> <!-- Filter icon -->
-</button>
+  <i class="ion-android-funnel"></i> <!-- Filter icon -->
+</button></div>
 
 <!-- Filter Section (Collapsible) -->
 <div class="collapse" id="filtersCollapse">
@@ -227,10 +227,10 @@ document.addEventListener("DOMContentLoaded", function () {
             let isCollapsed = filtersCollapse.classList.contains("show");
             if (isCollapsed) {
                 filtersCollapse.classList.remove("show");
-                toggleFiltersButton.innerHTML = '<i class="fas fa-filter"></i>'; // Filter icon
+                toggleFiltersButton.innerHTML = '<i class="ion-android-funnel"></i>'; // Filter icon
             } else {
                 filtersCollapse.classList.add("show");
-                toggleFiltersButton.innerHTML = '<i class="fas fa-times"></i>'; // Close icon
+                toggleFiltersButton.innerHTML = '<i class="ion-close"></i>'; // Close icon
             }
         });
         

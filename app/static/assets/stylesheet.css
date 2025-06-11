@@ -1,0 +1,219 @@
+   /* Adaptive Placeholder Styles */
+   .form-group {
+    position: relative;
+    margin-bottom: 1.5em;
+    width: 100%;
+}
+.registration-form{
+	padding: 50px 0;
+    background:#475d62 url(../../assets/img/star-sky.jpg);
+    background-size:cover;
+    position:relative;
+}
+
+.registration-form form{
+    background-color: #da0a0a;
+    max-width: 600px;
+    margin: auto;
+    padding: 50px 70px;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.075);
+    background: #e7e7e7;
+}
+
+.registration-form .illustration {
+    text-align:center;
+    padding:15px 0 20px;
+    font-size:100px;
+    color:#2980ef;
+  }
+
+.adaptive-input {
+    box-sizing: border-box;
+    width: 100%;
+    height: calc(3em + 2px);
+    margin: 0 0 1em;
+    padding: 1em;
+    border: 1px solid #ccc;
+    border-radius: 1.5em;
+    background: #fff;
+    outline: none;
+    font-family: inherit;
+    font-size: 1em;
+}
+
+.adaptive-input{
+    &:focus {
+        border-color: #00bafa;
+    }
+    
+    &:focus + label[placeholder]:before,
+    &:valid + label[placeholder]:before {
+        transform: translate(0, -1.5em) scale(.9, .9);
+        color: #00bafa;
+        transition-duration: .2s;
+    }
+    
+    &:invalid + label[placeholder][alt]:before {
+        content: attr(alt);
+    }
+}
+
+.adaptive-input + label[placeholder] {
+    display: block;
+    pointer-events: none;
+    line-height: 1.25em;
+    margin-top: calc(-3em - 2px);
+    margin-bottom: calc((3em - 1em) + 2px);
+}
+
+.adaptive-input + label[placeholder]:before {
+    content: attr(placeholder);
+    display: inline-block;
+    margin: 0 calc(1em + 2px);
+    padding: 0 2px;
+    color: #898989;
+    white-space: nowrap;
+    transition: .3s ease-in-out;
+    background-image: linear-gradient(to bottom, #fff, #fff);
+    background-size: 100% 5px;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Date inputs */
+input[type="date"].adaptive-input {
+    padding-top: 0.9em;
+    padding-bottom: 0.9em;
+}
+
+/* Select and file inputs keep original styling */
+.form-select, .form-control[type="file"] {
+    width: 100%;
+    padding: 0.8em;
+    border: 1px solid #ced4da;
+    border-radius: 1.5em;
+    margin-bottom: 1.5em;
+    font-family: inherit;
+    font-size: 1em;
+}
+
+/* Button styling */
+.btn-primary {
+    background-color: #00bafa;
+    border-color: #00bafa;
+    padding: 0.8em 1.5em;
+    border-radius: 1.5em;
+    font-size: 1em;
+    margin-top: 1em;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: #0095d9;
+    border-color: #0095d9;
+}
+/* Button styling */
+.btn-outline-secondary {
+
+    padding: 0.8em 1.5em;
+    border-radius: 1.5em;
+    font-size: 1em;
+    margin-top: 1em;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #0095d9;
+    border-color: #0095d9;
+}
+
+/* Form container */
+.form-container {
+    max-width: 600px;
+    width: 100%;
+    padding: 2em;
+}
+
+h2 {
+    color: #333;
+    margin-bottom: 1.5em;
+    text-align: center;
+}
+
+
+/*login modal*/
+.login-dark {
+    height:1000px;
+    background:#475d62 url(../../assets/img/star-sky.jpg);
+    background-size:cover;
+    position:relative;
+  }
+  
+  .login-dark form {
+    max-width:320px;
+    width:90%;
+    background-color:#1e2833;
+    padding:40px;
+    border-radius:4px;
+    transform:translate(-50%, -50%);
+    position:absolute;
+    top:50%;
+    left:50%;
+    color:#fff;
+    box-shadow:3px 3px 4px rgba(0,0,0,0.2);
+  }
+  
+  .login-dark .illustration {
+    text-align:center;
+    padding:15px 0 20px;
+    font-size:100px;
+    color:#2980ef;
+  }
+  
+  .login-dark form .form-control {
+    background:none;
+    border:none;
+    border-bottom:1px solid #434a52;
+    border-radius:0;
+    box-shadow:none;
+    outline:none;
+    color:inherit;
+  }
+  
+  .login-dark form .btn-primary {
+    background:#214a80;
+    border:none;
+    border-radius:4px;
+    padding:11px;
+    box-shadow:none;
+    margin-top:26px;
+    text-shadow:none;
+    outline:none;
+  }
+  
+  .login-dark form .btn-primary:hover, .login-dark form .btn-primary:active {
+    background:#214a80;
+    outline:none;
+  }
+  
+  .login-dark form .forgot {
+    display:block;
+    text-align:center;
+    font-size:12px;
+    color:#6f7a85;
+    opacity:0.9;
+    text-decoration:none;
+  }
+  
+  .login-dark form .forgot:hover, .login-dark form .forgot:active {
+    opacity:1;
+    text-decoration:none;
+  }
+  
+  .login-dark form .btn-primary:active {
+    transform:translateY(1px);
+  }
+  
+  
