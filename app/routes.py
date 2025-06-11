@@ -113,6 +113,7 @@ def init_app(app):
     #     return render_template('update_equipment.html', equipment=equipment)
 
     @app.route('/register', methods=['GET', 'POST'])
+    @login_required
     def register():
         if current_user.role_id != 1:
             flash("access denied: please contact your Adminstrator")
