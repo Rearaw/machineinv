@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Admin Dashboard</h1>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Total Machines</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_machines }}</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Total Users</div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ total_users }}</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+    <a href="{{ url_for('add_equipment') }}" class="btn btn-outline-secondary">Add New Equipment</a>
+    <a href="{{ url_for('add_user') }}" class="btn btn-outline-secondary">Add New User</a>
+</div>
+{% endblock %}

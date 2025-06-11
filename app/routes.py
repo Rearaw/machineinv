@@ -6,6 +6,7 @@ from app.models import User, Role, Equipment, Service,Component,Category,Locatio
 from werkzeug.utils import secure_filename
 import os
 from flask import request, jsonify
+from sqlalchemy.exc import IntegrityError
 BASE_DIR=os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR,"static","uploads")
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif','webp'}
@@ -50,6 +51,16 @@ def init_app(app):
         logout_user()
         flash('Logged out successfully!', 'success')
         return redirect(url_for('index'))
+    @app.route('/admin/dashboard')
+    @login_required
+    def admin_dashboard():
+        if current_user.role_id != 1:
+            flash("Access denied: Admins only.")
+            return redirect(url_for('equipments'))
+
+        total_machines = Equipment.query.count()
+        total_users = User.query.count()
+        return render_template('admin_dashboard.html', total_machines=total_machines, total_users=total_users)
 
     @app.route('/equipments', methods=['GET'])
     @login_required
@@ -103,6 +114,9 @@ def init_app(app):
 
     @app.route('/register', methods=['GET', 'POST'])
     def register():
+        if current_user.role_id != 1:
+            flash("access denied: please contact your Adminstrator")
+            return redirect(url_for('equipments'))
         if request.method == 'POST':
             username = request.form['username']
             password = request.form['password']
@@ -413,6 +427,42 @@ def init_app(app):
         db.session.commit()
         flash('Component deleted successfully!', 'success')
         return redirect(url_for('components'))
+
+
+    @app.route('/admin/add_user', methods=['GET', 'POST'])
+    @login_required
+    def add_user():
+        if current_user.role_id != 1:
+            flash("Access denied: Admins only.")
+            return redirect(url_for('equipments'))
+
+        if request.method == 'POST':
+            username = request.form['username']
+            password = request.form['password']
+            role_id = request.form['role_id']
+
+            if User.query.filter_by(username=username).first():
+                flash("Username already exists.")
+                return redirect(url_for('add_user'))
+            role = Role.query.get(role_id)
+            if not role:
+                flash('Invalid role selected!', 'error')
+                return redirect(url_for('register'))
+
+            new_user = User(username=username, role=role)
+            new_user.set_password(password)
+            db.session.add(new_user)
+            try:
+                db.session.commit()
+                flash('User added successfully.')
+            except IntegrityError:
+                db.session.rollback()
+                flash('Failed to add user due to DB error.')
+
+            return redirect(url_for('admin_dashboard'))
+        roles = Role.query.all()
+        return render_template('add_user.html',roles=roles)
+
 
     @app.route('/update_status/<int:equipment_id>', methods=['POST'])
     @login_required

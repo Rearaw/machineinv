@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='assets/addequipments.css') }}">
+<div class="container mt-5">
+    <h2>Add New User</h2>
+    <form method="POST">
+        <div class="mb-3">
+            <input name="username" class="adaptive-input" required>
+            <label for="username" placeholder="username" alt="Enter username"></label>
+        </div>
+        <div class="mb-3">
+            <input name="password" type="password" class="adaptive-input" required>
+            <label for="password" placeholder="password" alt="Enter password"></label>
+        </div>
+        <div class="mb-3">
+            <select class="form-select" id="role_id" name="role_id" required>
+              {% for role in roles %}
+              <option value="{{ role.role_id }}">{{ role.role_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        <button class="btn btn-primary">Create User</button>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
