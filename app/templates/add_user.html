@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='assets/addequipments.css') }}">
-<div class="container mt-5">
-    <h2>Add New User</h2>
+<div class="registration-form">
+    
     <form method="POST">
+        <h2>Add New User</h2>
         <div class="mb-3">
             <input name="username" class="adaptive-input" required>
             <label for="username" placeholder="username" alt="Enter username"></label>
@@ -19,8 +20,8 @@
               {% endfor %}
             </select>
           </div>
-        <button class="btn btn-primary">Create User</button>
-        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
+        <button class="btn btn-outline-secondary">Create User</button>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
     </form>
 </div>
 {% endblock %}
