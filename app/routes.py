@@ -7,6 +7,8 @@ from werkzeug.utils import secure_filename
 import os
 from flask import request, jsonify
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import func
+
 BASE_DIR=os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR,"static","uploads")
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif','webp'}
@@ -151,8 +153,14 @@ def init_app(app):
     @app.route('/categories')
     @login_required
     def categories():
-        categories = Category.query.all()
-        return render_template('categories.html', categories=categories)
+        # Join Category and Equipment to get machine count
+        categories_with_counts = db.session.query(
+            Category,
+            func.count(Equipment.equipment_id).label('machine_count')
+        ).outerjoin(Equipment, Category.category_id == Equipment.category_id
+        ).group_by(Category.category_id).all()
+
+        return render_template('categories.html', categories=categories_with_counts)
 
     @app.route('/add_category', methods=['GET', 'POST'])
     @login_required
@@ -175,6 +183,13 @@ def init_app(app):
         db.session.commit()
         flash('Category deleted successfully!', 'success')
         return redirect(url_for('categories'))
+
+    @app.route('/categories/<int:category_id>/machines')
+    @login_required
+    def view_category_machines(category_id):
+        category = Category.query.get_or_404(category_id)
+        equipments = Equipment.query.filter_by(category_id=category_id).all()
+        return render_template('category_machines.html', category=category, equipments=equipments)
 
     @app.route('/add_equipment', methods=['GET', 'POST'])
     @login_required
