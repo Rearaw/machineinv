@@ -8,7 +8,7 @@
     <!-- Bootstrap CSS -->
 <!-- Inside <head> -->
   <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap/css/bootstrap.min4.1.3.css') }}">
+
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="{{ url_for('static', filename='assets/stylesheet.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='ionicons/css/ionicons.min.css') }}">  
@@ -24,30 +24,22 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
             {% if current_user.is_authenticated %}
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('equipments') }}">Equipments</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('services') }}">Services</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('categories') }}">Categories</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('components') }}">Components</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('locations') }}">Locations</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
-            </li>
+            <div class="dropdown" class = "nav-item">
+              <div class="illustration"><i class="ion-android-person"></i></div>
+              <button onclick="myFunction()" class="dropbtn">{{ current_user.username }}</button>
+              <div id="myDropdown" class="dropdown-content">
+                <a href="{{ url_for('equipments') }}">Equipments</a>
+                <a href="{{ url_for('services') }}">Services</a>
+                <a href="{{ url_for('categories') }}">Categories</a>
+                <a href="{{ url_for('components') }}">Components</a>
+                <a href="{{ url_for('locations') }}">Locations</a>
+                <div class="illustration"><a href="{{ url_for('logout') }}" class="ion-log-out"></a></div>
+                <a href="{{ url_for('admin_dashboard') }}">dashboard</a>
+              </div>
+            </div>
             {% else %}
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('login') }}">Login</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('register') }}">Register</a>
             </li>
             {% endif %}
           </ul>
@@ -92,7 +84,29 @@
 </div>
 
 
-    <!-- Bootstrap JS -->
+  <script>
+    /* When the user clicks on the button, 
+    toggle between hiding and showing the dropdown content */
+    function myFunction() {
+      document.getElementById("myDropdown").classList.toggle("show");
+    }
+    
+    // Close the dropdown if the user clicks outside of it
+    window.onclick = function(event) {
+      if (!event.target.matches('.dropbtn')) {
+        var dropdowns = document.getElementsByClassName("dropdown-content");
+        var i;
+        for (i = 0; i < dropdowns.length; i++) {
+          var openDropdown = dropdowns[i];
+          if (openDropdown.classList.contains('show')) {
+            openDropdown.classList.remove('show');
+          }
+        }
+      }
+    }
+    </script>
+      
+<!-- Bootstrap JS -->
     <script src="{{ url_for('static', filename='bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='jquery/js/jquery-3.7.1.min.js') }}"></script>
 

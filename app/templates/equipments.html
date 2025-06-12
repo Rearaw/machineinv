@@ -1,12 +1,13 @@
 {% extends "base.html" %}
 {% block title %}Equipments{% endblock %}
 {% block content %}
-<div><a href="{{ url_for('add_equipment') }}" class="btn btn-outline-secondary">Add Equipment</a>
+<div>
 
 <!-- Toggle Button for Filters -->
 <button id="toggleFilters" class="btn btn-outline-secondary" type="button" aria-expanded="false" aria-label="Toggle filters">
   <i class="ion-android-funnel"></i> <!-- Filter icon -->
 </button></div>
+<p></p>
 
 <!-- Filter Section (Collapsible) -->
 <div class="collapse" id="filtersCollapse">
@@ -40,7 +41,7 @@
       </div>
   </div>
 </div>
-
+<p></p>
 <!-- Equipment List -->
 <div class="row" id="equipmentsContainer">
   {% for equipment in equipments %}
