@@ -22,7 +22,8 @@
       <td>{{ service.service_hours }}</td>
       <td>{{ service.service_cost }}</td>
       <td>{{ service.service_next_date }}</td>
-      <td>{{ service.equipment.equipment_name if service.equipment else '' }}</td>
+      <td>
+        <a href="{{ url_for('equipment_details', equipment_id=service.equipment.equipment_id) }}" class="btn btn-sm btn-info">{{ service.equipment.equipment_name if service.equipment else '' }}</a></td>
       <td>{{ service.service_by.username if service.service_by else '' }}</td>
     </tr>
     {% endfor %}
