@@ -10,11 +10,13 @@
   {% for category, count, machines in categories %}
   <div class="accordion-item">
     <h2 class="accordion-header" id="heading-{{ category.category_id }}">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-              data-bs-target="#collapse-{{ category.category_id }}" aria-expanded="false"
-              aria-controls="collapse-{{ category.category_id }}">
-        {{ category.category_name }} ({{ count }} Machines)
-      </button>
+        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+            data-bs-target="#collapse-{{ category.category_id }}" aria-expanded="false"
+            aria-controls="collapse-{{ category.category_id }}">
+            {{ category.category_name }}
+            <span class="badge bg-primary ms-2 count-up" data-count="{{ count }}">0</span>
+        </button>
+
     </h2>
     <div id="collapse-{{ category.category_id }}" class="accordion-collapse collapse"
          aria-labelledby="heading-{{ category.category_id }}" data-bs-parent="#categoryAccordion">
@@ -58,4 +60,25 @@
   </div>
   {% endfor %}
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+      document.querySelectorAll('.count-up').forEach(function (el) {
+        let target = +el.getAttribute('data-count');
+        let count = 0;
+        let step = target / 50;
+  
+        function update() {
+          count += step;
+          if (count < target) {
+            el.textContent = Math.ceil(count);
+            requestAnimationFrame(update);
+          } else {
+            el.textContent = target;
+          }
+        }
+        update();
+      });
+    });
+  </script>
+  
 {% endblock %}

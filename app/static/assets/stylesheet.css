@@ -261,5 +261,7 @@ h2 {
   .login-dark form .btn-primary:active {
     transform:translateY(1px);
   }
-  
-  
+  .accordion-button .badge {
+    font-size: 0.9rem;
+    padding: 0.4em 0.6em;
+  }

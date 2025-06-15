@@ -9,17 +9,17 @@
   {% for location, count, equipments in locations_with_counts_and_machines %}
   <div class="accordion-item">
     <h2 class="accordion-header" id="heading{{ location.location_id }}">
-      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ location.location_id }}" aria-expanded="false" aria-controls="collapse{{ location.location_id }}">
-        {{ location.location_name }} ({{ count }} machines)
+      <button class="accordion-button collapsed" type="button" 
+      data-bs-toggle="collapse" 
+      data-bs-target="#collapse{{ location.location_id }}" 
+      aria-expanded="false" 
+      aria-controls="collapse{{ location.location_id }}">
+        {{ location.location_name }} <span class="badge bg-primary ms-2 count-up" data-count="{{ count }}">0</span>
       </button>
     </h2>
     <div id="collapse{{ location.location_id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ location.location_id }}" data-bs-parent="#locationsAccordion">
       <div class="accordion-body">
         <p><strong>Description:</strong> {{ location.location_description }}</p>
-        <div class="mb-2">
-          <a href="{{ url_for('edit_location', location_id=location.location_id) }}" class="btn btn-sm btn-warning">Edit</a>
-          <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ location.location_id }})">Delete</button>
-        </div>
 
         {% if equipments %}
         <table class="table table-bordered table-hover mt-3">
@@ -47,11 +47,35 @@
         {% else %}
           <p>No machines found in this location.</p>
         {% endif %}
+        <div class="d-flex justify-content-end">
+          <a href="{{ url_for('edit_location', location_id=location.location_id) }}" class="btn btn-sm btn-warning">Edit</a>
+          <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ location.location_id }})">Delete</button>
+        </div>
       </div>
     </div>
   </div>
   {% endfor %}
 </div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('.count-up').forEach(function (el) {
+      let target = +el.getAttribute('data-count');
+      let count = 0;
+      let step = target / 50;
+
+      function update() {
+        count += step;
+        if (count < target) {
+          el.textContent = Math.ceil(count);
+          requestAnimationFrame(update);
+        } else {
+          el.textContent = target;
+        }
+      }
+      update();
+    });
+  });
+</script>
 
 <script>
 function confirmDelete(locationId) {
