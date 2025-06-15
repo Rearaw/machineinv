@@ -153,14 +153,14 @@ def init_app(app):
     @app.route('/categories')
     @login_required
     def categories():
-        # Join Category and Equipment to get machine count
-        categories_with_counts = db.session.query(
-            Category,
-            func.count(Equipment.equipment_id).label('machine_count')
-        ).outerjoin(Equipment, Category.category_id == Equipment.category_id
-        ).group_by(Category.category_id).all()
+        categories_with_counts = []
+        all_categories = db.session.query(Category).all()
+        for category in all_categories:
+            machines = category.equipments  # Assuming backref on Equipment
+            count = len(machines)
+            categories_with_counts.append((category, count, machines))
+        return render_template("categories.html", categories=categories_with_counts)
 
-        return render_template('categories.html', categories=categories_with_counts)
 
     @app.route('/add_category', methods=['GET', 'POST'])
     @login_required
@@ -380,13 +380,19 @@ def init_app(app):
             print("Error deleting location:", e)
             return jsonify({"success": False}), 500
 
-
-
     @app.route('/locations')
     @login_required
     def locations():
-        all_locations = Location.query.all()
-        return render_template('locations.html', locations=all_locations)
+        locations = Location.query.all()
+        locations_with_counts_and_machines = []
+
+        for loc in locations:
+            machines = Equipment.query.filter_by(location_id=loc.location_id).all()
+            count = len(machines)
+            locations_with_counts_and_machines.append((loc, count, machines))
+
+        return render_template("locations.html", locations_with_counts_and_machines=locations_with_counts_and_machines)
+
     
     @app.route('/edit_location/<int:location_id>', methods=['GET', 'POST'])
     @login_required
@@ -402,8 +408,14 @@ def init_app(app):
 
         return render_template('edit_location.html', location=location)
    
+    @app.route('/locations/<int:location_id>/machines')
+    @login_required
+    def view_location_machines(location_id):
+        category = Location.query.get_or_404(location_id)
+        equipments = Equipment.query.filter_by(location_id=location_id).all()
+        return render_template('location_machines.html', location=category, equipments=equipments)
     
-    
+
     
     
     @app.route('/components')
@@ -478,7 +490,6 @@ def init_app(app):
             return redirect(url_for('admin_dashboard'))
         roles = Role.query.all()
         return render_template('add_user.html',roles=roles)
-
 
     @app.route('/update_status/<int:equipment_id>', methods=['POST'])
     @login_required
