@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db, login_manager
 from app.models import User, Role, Equipment, Service,Component,Category,Location,EquipmentImage
@@ -41,7 +41,9 @@ def init_app(app):
             if user and user.check_password(password):  # 🔹 Verify password
                 login_user(user)
                 flash('Logged in successfully!', 'success')
-                return redirect(url_for('equipments'))
+                next_url = session.pop('next_url', None)
+                return redirect(next_url or url_for('equipments'))
+                
             else:
                 flash('Invalid username or password', 'error')
         
@@ -58,7 +60,7 @@ def init_app(app):
     def admin_dashboard():
         if current_user.role_id != 1:
             flash("Access denied: Admins only.")
-            return redirect(url_for('equipments'))
+            return  redirect(url_for('equipments'))
 
         total_machines = Equipment.query.count()
         total_users = User.query.count()
@@ -101,18 +103,6 @@ def init_app(app):
         categories = Category.query.all()
 
         return render_template('equipments.html', equipments=equipments, locations=locations, categories=categories)
-
-
-    # @app.route('/update_equipment/<int:equipment_id>', methods=['GET', 'POST'])
-    # @login_required
-    # def update_equipment(equipment_id):
-    #     equipment = Equipment.query.get_or_404(equipment_id)
-    #     if request.method == 'POST':
-    #         equipment.status = request.form['status']
-    #         db.session.commit()
-    #         flash('Equipment updated successfully!', 'success')
-    #         return redirect(url_for('equipments'))
-    #     return render_template('update_equipment.html', equipment=equipment)
 
     @app.route('/register', methods=['GET', 'POST'])
     @login_required
@@ -178,6 +168,9 @@ def init_app(app):
     @app.route('/delete_category/<int:category_id>')
     @login_required
     def delete_category(category_id):
+        if current_user.role_id != 1:
+            flash("Access denied: Admins only.")
+            return redirect(url_for('equipments'))
         category = Category.query.get_or_404(category_id)
         db.session.delete(category)
         db.session.commit()
@@ -247,6 +240,9 @@ def init_app(app):
     @app.route('/delete_equipment/<int:equipment_id>', methods=['POST'])
     @login_required
     def delete_equipment(equipment_id):
+        if current_user.role_id != 1:
+            flash("Access denied: Admins only.")
+            return redirect(url_for('equipments'))
         equipment = Equipment.query.get_or_404(equipment_id)
 
         try:
@@ -370,6 +366,11 @@ def init_app(app):
     @app.route('/delete_location/<int:location_id>', methods=['POST'])
     @login_required
     def delete_location(location_id):
+        if current_user.role_id != 1:
+            flash("Access denied: Admins only.")
+            return redirect(url_for('equipments'))
+
+
         location = Location.query.get_or_404(location_id)
 
         try:
@@ -450,6 +451,9 @@ def init_app(app):
     @app.route('/delete_component/<int:component_id>')
     @login_required
     def delete_component(component_id):
+        if current_user.role_id != 1:
+            flash("Access denied: Admins only.")
+            return redirect(url_for('equipments'))
         component = Component.query.get_or_404(component_id)
         db.session.delete(component)
         db.session.commit()
@@ -507,3 +511,9 @@ def init_app(app):
     @app.errorhandler(404)
     def page_not_found(error):
         return render_template('404.html'), 404
+
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        # Store the original request URL in the session
+        session['next_url'] = request.url
+        return redirect(url_for('login'))
