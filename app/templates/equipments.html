@@ -2,7 +2,7 @@
 {% block title %}Equipments{% endblock %}
 {% block content %}
 <div>
-
+  <a href="{{ url_for('add_equipment') }}" class="btn btn-outline-secondary">Add Equipment</a><i>   </i>
 <!-- Toggle Button for Filters -->
 <button id="toggleFilters" class="btn btn-outline-secondary" type="button" aria-expanded="false" aria-label="Toggle filters">
   <i class="ion-android-funnel"></i> <!-- Filter icon -->
@@ -88,37 +88,8 @@
 
 <!-- Custom CSS for status note and snackbar -->
 <style>
-    /* Snackbar styling */
-    .snackbar {
-      visibility: hidden;
-      min-width: 250px;
-      margin-left: -125px;
-      background-color: #333;
-      color: #fff;
-      text-align: center;
-      border-radius: 5px;
-      padding: 16px;
-      position: fixed;
-      z-index: 1;
-      left: 50%;
-      bottom: 30px;
-      font-size: 14px;
-    }
-  
-    .snackbar.show {
-      visibility: visible;
-      animation: fadein 0.5s, fadeout 0.5s 2.5s;
-    }
-  
-    @keyframes fadein {
-      from { bottom: 0; opacity: 0; }
-      to { bottom: 30px; opacity: 1; }
-    }
-  
-    @keyframes fadeout {
-      from { bottom: 30px; opacity: 1; }
-      to { bottom: 0; opacity: 0; }
-    }
+
+
     /* Status note styling */
   .status-note {
       display: inline-block;
