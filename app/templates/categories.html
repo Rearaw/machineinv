@@ -3,8 +3,12 @@
 {% block title %}Categories{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Categories</h2>
+<h2 class="mb-4"><div class="category"><i class="ion-filing"></i></div>CATEGORYS</h2>
 <a href="{{ url_for('add_category') }}" class="btn btn-outline-secondary mb-3">Add Category</a>
+
+<!-- Add PDF library references -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
 <div class="accordion" id="categoryAccordion">
   {% for category, count, machines in categories %}
@@ -16,7 +20,6 @@
             {{ category.category_name }}
             <span class="badge bg-primary ms-2 count-up" data-count="{{ count }}">0</span>
         </button>
-
     </h2>
     <div id="collapse-{{ category.category_id }}" class="accordion-collapse collapse"
          aria-labelledby="heading-{{ category.category_id }}" data-bs-parent="#categoryAccordion">
@@ -24,11 +27,12 @@
         <p><strong>Description:</strong> {{ category.description }}</p>
         
         {% if machines %}
-        <table class="table table-bordered table-sm mt-3">
+        <table class="table table-bordered table-sm mt-3" id="table-{{ category.category_id }}">
           <thead>
             <tr>
               <th>ID</th>
               <th>Machine Name</th>
+              <th>serial Number</th>
               <th>Location</th>
               <th>Status</th>
               <th>Actions</th>
@@ -39,6 +43,7 @@
             <tr>
               <td>{{ machine.equipment_id }}</td>
               <td>{{ machine.equipment_name }}</td>
+              <td>{{ machine.serial_number }}</td>
               <td>{{ machine.location.location_name }}</td>
               <td>{{ machine.status }}</td>
               <td>
@@ -52,14 +57,23 @@
         <p>No machines in this category.</p>
         {% endif %}
 
-        <div class="d-flex justify-content-end">
-          <a href="{{ url_for('delete_category', category_id=category.category_id) }}" class="btn btn-danger btn-sm">Delete Category</a>
+        <div class="d-flex justify-content-end gap-2">
+          <!-- Add Print PDF button next to Delete button -->
+          <button onclick="generatePDF('{{ category.category_id }}', '{{ category.category_name }}')" 
+                  class="btn btn-outline-secondary mb-3">
+            <i class="ion-android-document"></i> Print PDF
+          </button>
+          <a href="{{ url_for('delete_category', category_id=category.category_id) }}" 
+             class="btn btn-outline-secondary mb-3">
+            Delete Category
+          </a>
         </div>
       </div>
     </div>
   </div>
   {% endfor %}
 </div>
+
 <script>
     document.addEventListener("DOMContentLoaded", function () {
       document.querySelectorAll('.count-up').forEach(function (el) {
@@ -79,6 +93,80 @@
         update();
       });
     });
-  </script>
-  
+
+    function generatePDF(categoryId, categoryName) {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        // Add title
+        doc.setFontSize(18);
+        doc.setTextColor(40, 40, 40);
+        doc.text(`${categoryName} Machines Report`, 105, 15, { align: 'center' });
+        
+        // Add date
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 25);
+        
+        // Get table data
+        const table = document.getElementById(`table-${categoryId}`);
+        let tableData = [];
+        
+        if (table) {
+            // Process table rows
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const rowData = [];
+                const cells = row.querySelectorAll('td');
+                cells.forEach((cell, index) => {
+                    // Skip the actions column (last column)
+                    if (index < cells.length - 1) {
+                        rowData.push(cell.textContent.trim());
+                    }
+                });
+                tableData.push(rowData);
+            });
+            
+            // Add table to PDF
+            doc.autoTable({
+                startY: 30,
+                head: [['ID', 'Machine Name', 'Serial Number','Location', 'Status']],
+                body: tableData,
+                theme: 'grid',
+                headStyles: {
+                    fillColor: [41, 128, 185],
+                    textColor: 255,
+                    fontSize: 10
+                },
+                bodyStyles: {
+                    fontSize: 9
+                },
+                margin: { top: 30 }
+            });
+        } else {
+            // No machines case
+            doc.setFontSize(12);
+            doc.text('No machines in this category.', 14, 40);
+        }
+        
+        // Add footer
+        const pageCount = doc.internal.getNumberOfPages();
+        for(let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text(`Page ${i} of ${pageCount}`, 195, 285, { align: 'right' });
+        }
+        
+        // Save the PDF
+        doc.save(`${categoryName.replace(/ /g, '_')}_Machines_Report.pdf`);
+    }
+
+</script>
+
+<style>
+.gap-2 {
+    gap: 0.5rem;
+}
+</style>
 {% endblock %}

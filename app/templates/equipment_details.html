@@ -26,8 +26,15 @@
 
     <div class="col-md-6">
       <h4>Details</h4>
+      <p><strong>Serial number:</strong> <span class="badge bg-dark">{{ equipment.serial_number }}</span></p>
       <p><strong>Category:</strong> {{ equipment.category.category_name if equipment.category else 'Uncategorized' }}</p>
-      <p><strong>Status:</strong> <span class="badge bg-dark">{{ equipment.status }}</span></p>
+      <p><strong>Status:</strong>           <span class="badge bg-dark"
+        data-equipment-id="{{ equipment.equipment_id }}"
+        data-current-status="{{ equipment.status }}"
+        data-bs-toggle="modal"
+        data-bs-target="#statusModal">
+    {{ equipment.status }}
+  </span></p>
       <p><strong>Location:</strong> {{ equipment.location.location_name if equipment.location else 'Unknown' }}</p>
       <p><strong>Time Online:</strong> {{ equipment.purchase_date.strftime('%Y-%m-%d') if equipment.purchase_date else 'N/A' }}</p>
       <p><strong>Next Scheduled Service:</strong> 
@@ -40,9 +47,12 @@
       
 
       <div class="d-flex gap-2">
-        <a href="{{ url_for('update_equipment', equipment_id=equipment.equipment_id) }}" class="btn btn-primary">Edit Equipment</a>
-        <a href="{{ url_for('service_equipment', equipment_id=equipment.equipment_id) }}" class="btn btn-warning">Service This Machine</a>
-        <button class="btn btn-danger" onclick="confirmDelete({{ equipment.equipment_id }})">Delete Equipment</button>
+          <button onclick="generateEquipmentPDF()" class="btn btn-outline-secondary"id="pdfButton">
+            <i class="ion-android-document"></i> Generate PDF Report
+          </button>
+        <a href="{{ url_for('update_equipment', equipment_id=equipment.equipment_id) }}" class="btn btn-outline-secondary">Edit Equipment</a>
+        <a href="{{ url_for('service_equipment', equipment_id=equipment.equipment_id) }}" class="btn btn-outline-secondary">Service This Machine</a>
+        <button class="btn btn-outline-secondary-danger" onclick="confirmDelete({{ equipment.equipment_id }})">Delete Equipment</button>
       </div>
       
     </div>
@@ -83,10 +93,114 @@
 <div class="alert alert-info mt-4">No service history available for this equipment.</div>
 {% endif %}
 
-
-
+<!-- Add PDF libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 <script>
 
+
+
+  function generateEquipmentPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      let yPosition = 20;
+  
+      // Add title
+      doc.setFontSize(20);
+      doc.setTextColor(40, 40, 40);
+      doc.text('Equipment Report: {{ equipment.equipment_name }}', 105, yPosition, { align: 'center' });
+      yPosition += 15;
+  
+      // Add generation date
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text('Generated on: ' + new Date().toLocaleDateString(), 14, yPosition);
+      yPosition += 15;
+  
+      // Add main details
+      doc.setFontSize(14);
+      doc.text('Equipment Details', 14, yPosition);
+      yPosition += 10;
+  
+      // Draw line under heading
+      doc.setDrawColor(200, 200, 200);
+      doc.line(14, yPosition, 196, yPosition);
+      yPosition += 15;
+  
+      // Add equipment details with proper escaping
+      doc.setFontSize(12);
+      doc.text('Serial Number: {{ equipment.serial_number}}', 14, yPosition);
+      yPosition += 8;
+      doc.text('Category: {{ equipment.category.category_name if equipment.category else "Uncategorized" }}', 14, yPosition);
+      yPosition += 8;
+      doc.text('Status: {{ equipment.status }}', 14, yPosition);
+      yPosition += 8;
+      doc.text('Location: {{ equipment.location.location_name if equipment.location else "Unknown" }}', 14, yPosition);
+      yPosition += 8;
+      doc.text('Purchase Date: {{ equipment.purchase_date.strftime("%Y-%m-%d") if equipment.purchase_date else "N\/A" }}', 14, yPosition);
+      yPosition += 8;
+      doc.text('Next Service: {% if service_records %}{{ service_records[0].service_next_date.strftime("%Y-%m-%d") }}{% else %}Not Scheduled{% endif %}', 14, yPosition);
+      yPosition += 15;
+  
+      // Add service history table
+      {% if service_records %}
+      doc.setFontSize(14);
+      doc.text('Service History', 14, yPosition);
+      yPosition += 10;
+  
+      doc.autoTable({
+          startY: yPosition,
+          head: [['Date', 'Description', 'Hours', 'Cost', 'Next Service', 'Serviced By']],
+          body: [
+              {% for service in service_records %}
+              [
+                  '{{ service.service_date.strftime("%Y-%m-%d") }}',
+                  '{{ service.service_description}}',
+                  '{{ service.service_hours }}',
+                  '${{ service.service_cost }}',
+                  '{{ service.service_next_date.strftime("%Y-%m-%d") if service.service_next_date else "Not Scheduled" }}',
+                  '{{ service.service_by.username if service.service_by else "Unknown"|escapejs }}'
+              ]{% if not loop.last %},{% endif %}
+              {% endfor %}
+          ],
+          theme: 'grid',
+          headStyles: {
+              fillColor: [51, 51, 51],
+              textColor: 255,
+              fontSize: 10
+          },
+          bodyStyles: {
+              fontSize: 9
+          }
+      });
+      {% endif %}
+  
+      // Add footer
+      const pageCount = doc.internal.getNumberOfPages();
+      for(let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(8);
+          doc.text('Page ' + i + ' of ' + pageCount, 195, 285, { align: 'right' });
+      }
+  
+      // Save the PDF
+      doc.save('{{ equipment.equipment_name|replace(" ", "_") }}_Report.pdf');
+  }
+  </script>
+
+<div id="snackbar" class="snackbar">Status updated successfully!</div>
+<script>
+  const button = document.getElementById('pdfButton');
+  const buttonText = document.getElementById('buttonText');
+  button.onclick = function() {
+      button.disabled = true;
+      document.querySelector("#pdfButton").textContent = 'Generating...';
+      setTimeout(() => {
+          generateEquipmentPDF();
+          button.disabled = false;
+          buttonText.textContent = 'Generate PDF Report';
+      }, 100);
+    };
   function confirmDelete(equipmentId) {
       if (confirm("Are you sure you want to delete this equipment? This action cannot be undone.")) {
           fetch(`/delete_equipment/${equipmentId}`, {
@@ -107,69 +221,66 @@
   }
 
 
-  document.addEventListener("DOMContentLoaded", function () {
-      let statusBadges = document.querySelectorAll(".status-badge");
-      let statusForm = document.getElementById("statusForm");
-      
-      statusBadges.forEach(badge => {
-          badge.addEventListener("click", function () {
-              let equipmentId = this.getAttribute("data-equipment-id");
-              let currentStatus = this.getAttribute("data-current-status");
-  
-              // Set values in modal
-              document.getElementById("modalEquipmentId").value = equipmentId;
-              document.getElementById("modalStatus").value = currentStatus;
-          });
-      });
-  
-      statusForm.addEventListener("submit", function (e) {
-          e.preventDefault();
-  
-          let equipmentId = document.getElementById("modalEquipmentId").value;
-          let newStatus = document.getElementById("modalStatus").value;
-  
-          fetch(`/update_status/${equipmentId}`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ status: newStatus })
-          })
-          .then(response => response.json())
-          .then(data => {
-              if (data.success) {
-                  // ✅ Update the status badge instantly
-                  let updatedBadge = document.querySelector(`.status-badge[data-equipment-id="${equipmentId}"]`);
-                  if (updatedBadge) {
-                      updatedBadge.textContent = data.new_status;
-                      updatedBadge.setAttribute("data-current-status", data.new_status);
-                      
-                      // Change color based on new status
-                      updatedBadge.classList.remove("bg-dark", "bg-success", "bg-danger", "bg-warning");
-                      if (data.new_status === "Online") {
-                          updatedBadge.classList.add("bg-success");
-                      } else if (data.new_status === "Offline") {
-                          updatedBadge.classList.add("bg-danger");
-                      } else if (data.new_status === "Serviced") {
-                          updatedBadge.classList.add("bg-warning");
-                      }
-                  }
-  
-                  // ✅ Show success message
-                  alert("Status updated successfully!");
-  
-                  // ✅ Correctly close the modal
-                  let statusModalEl = document.getElementById("statusModal");
-                  let statusModal = bootstrap.Modal.getInstance(statusModalEl);
-                  if (statusModal) {
-                      statusModal.hide();
-                  }
-              } else {
-                  alert("Failed to update status.");
-              }
-          })
-          .catch(error => console.error("Error:", error));
-      });
-  });
-  </script>
+document.addEventListener("DOMContentLoaded", function () {
+    const statusBadges = document.querySelectorAll(".status-note");
+    const statusForm = document.getElementById("statusForm");
+    const snackbar = document.getElementById("snackbar");
+
+    // Function to show snackbar
+    function showSnackbar(message) {
+        snackbar.textContent = message;
+        snackbar.classList.add("show");
+        setTimeout(() => snackbar.classList.remove("show"), 3000);
+    }
+
+    statusBadges.forEach(badge => {
+        badge.addEventListener("click", function () {
+            const equipmentId = this.getAttribute("data-equipment-id");
+            const currentStatus = this.getAttribute("data-current-status");
+
+            // Set values in modal
+            document.getElementById("modalEquipmentId").value = equipmentId;
+            document.getElementById("modalStatus").value = currentStatus;
+        });
+    });
+
+    statusForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const equipmentId = document.getElementById("modalEquipmentId").value;
+        const newStatus = document.getElementById("modalStatus").value;
+
+        fetch(`/update_status/${equipmentId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update the status badge instantly
+                const updatedBadge = document.querySelector(`.status-note[data-equipment-id="${equipmentId}"]`);
+                if (updatedBadge) {
+                    updatedBadge.textContent = data.new_status;
+                    updatedBadge.setAttribute("data-current-status", data.new_status);
+                    updatedBadge.className = "status-note"; // Reset classes
+                    updatedBadge.classList.add(`bg-${data.new_status.toLowerCase() === "online" ? "success" : data.new_status.toLowerCase() === "offline" ? "danger" : "warning"}`);
+                }
+
+                // Show snackbar instead of alert
+                showSnackbar("Status updated successfully!");
+
+                // Close the modal
+                bootstrap.Modal.getInstance(document.getElementById("statusModal")).hide();
+            } else {
+                showSnackbar("Failed to update status.");
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    });
+});
+</script>
+
   
   
 

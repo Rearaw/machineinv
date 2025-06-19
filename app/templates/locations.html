@@ -2,8 +2,11 @@
 {% block title %}Locations{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">Locations</h2>
+
+<h2 class="mb-4"><div class="location"><i class="ion-ios-location-outline"></i></div>LOCATIONS</h2>
 <a href="{{ url_for('add_location') }}" class="btn btn-outline-secondary mb-3">Add Location</a>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
 <div class="accordion" id="locationsAccordion">
   {% for location, count, equipments in locations_with_counts_and_machines %}
@@ -22,11 +25,12 @@
         <p><strong>Description:</strong> {{ location.location_description }}</p>
 
         {% if equipments %}
-        <table class="table table-bordered table-hover mt-3">
+        <table class="table table-bordered table-hover mt-3" id="table-{{ location.location_id }}">
           <thead>
             <tr>
               <th>ID</th>
               <th>Machine Name</th>
+              <th>Serial Number</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -36,6 +40,7 @@
             <tr>
               <td>{{ equipment.equipment_id }}</td>
               <td>{{ equipment.equipment_name }}</td>
+              <td>{{ equipment.serial_number }}</td>
               <td>{{ equipment.status }}</td>
               <td>
                 <a href="{{ url_for('equipment_details', equipment_id=equipment.equipment_id) }}" class="btn btn-sm btn-info">View</a>
@@ -48,8 +53,12 @@
           <p>No machines found in this location.</p>
         {% endif %}
         <div class="d-flex justify-content-end">
-          <a href="{{ url_for('edit_location', location_id=location.location_id) }}" class="btn btn-sm btn-warning">Edit</a>
-          <button class="btn btn-sm btn-danger" onclick="confirmDelete({{ location.location_id }})">Delete</button>
+          <button onclick="generatePDF('{{ location.location_id }}', '{{ location.location_name }}')" 
+          class="btn btn-outline-secondary mb-3">
+              <i class="ion-android-document"></i> Print PDF
+          </button>
+          <a href="{{ url_for('edit_location', location_id=location.location_id) }}" class="btn btn-outline-secondary mb-3">Edit</a>
+          <button class="btn btn-outline-secondary mb-3" onclick="confirmDelete({{ location.location_id }})">Delete</button>
         </div>
       </div>
     </div>
@@ -96,5 +105,78 @@ function confirmDelete(locationId) {
         .catch(error => console.error("Error:", error));
     }
 }
+
+function generatePDF(locationId, locationName) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Add title
+    doc.setFontSize(18);
+    doc.setTextColor(40, 40, 40);
+    doc.text(`${locationName} Machines Report`, 105, 15, { align: 'center' });
+    
+    // Add date
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 25);
+    
+    // Get table data
+    const table = document.getElementById(`table-${locationId}`);
+    let tableData = [];
+    
+    if (table) {
+        // Process table rows
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const rowData = [];
+            const cells = row.querySelectorAll('td');
+            cells.forEach((cell, index) => {
+                // Skip the actions column (last column)
+                if (index < cells.length - 1) {
+                    rowData.push(cell.textContent.trim());
+                }
+            });
+            tableData.push(rowData);
+        });
+        
+        // Add table to PDF
+        doc.autoTable({
+            startY: 30,
+            head: [['ID', 'Machine Name','Serial Number', 'Status']],
+            body: tableData,
+            theme: 'grid',
+            headStyles: {
+                fillColor: [41, 128, 185],
+                textColor: 255,
+                fontSize: 10
+            },
+            bodyStyles: {
+                fontSize: 9
+            },
+            margin: { top: 30 }
+        });
+    } else {
+        // No machines case
+        doc.setFontSize(12);
+        doc.text('No machines in this location.', 14, 40);
+    }
+    
+    // Add footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for(let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150);
+        doc.text(`Page ${i} of ${pageCount}`, 195, 285, { align: 'right' });
+    }
+    
+    // Save the PDF
+    doc.save(`${locationName.replace(/ /g, '_')}_Machines_Report.pdf`);
+}
 </script>
+<style>
+  .gap-2 {
+      gap: 0.5rem;
+  }
+  </style>
 {% endblock %}
