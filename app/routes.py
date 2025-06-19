@@ -140,8 +140,8 @@ def init_app(app):
         services = Service.query.all()
         return render_template('services.html', services=services)
 
-    @app.route('/categories')
     @login_required
+    @app.route('/categories')
     def categories():
         categories_with_counts = []
         all_categories = db.session.query(Category).all()
