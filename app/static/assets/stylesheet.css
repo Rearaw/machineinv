@@ -44,11 +44,11 @@
    
    
    
-   /* Adaptive Placeholder Styles */
-   .form-group {
-    position: relative;
-    margin-bottom: 1.5em;
-    width: 100%;
+  /* Adaptive Placeholder Styles */
+  .form-group {
+  position: relative;
+  margin-bottom: 1.5em;
+  width: 100%;
 }
 .registration-form{
 	padding: 50px 0;
@@ -75,6 +75,18 @@
     color:#2980ef;
   }
 
+.location {
+    text-align:center;
+    padding:15px 0 20px;
+    font-size:100px;
+    color:#2980ef;
+  }
+.category {
+    text-align:center;
+    padding:15px 0 20px;
+    font-size:100px;
+    color:#2980ef;
+  }
 .adaptive-input {
     box-sizing: border-box;
     width: 100%;
@@ -174,6 +186,19 @@ input[type="date"].adaptive-input {
     background-color: #0095d9;
     border-color: #0095d9;
 }
+.btn-outline-secondary-danger {
+
+  padding: 0.8em 1.5em;
+  border-radius: 1.5em;
+  font-size: 1em;
+  margin-top: 1em;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-secondary-danger:hover {
+  background-color: #fa2323;
+  border-color: #fa2323;
+}
 
 /* Form container */
 .form-container {
@@ -264,4 +289,34 @@ h2 {
   .accordion-button .badge {
     font-size: 0.9rem;
     padding: 0.4em 0.6em;
+  }
+  .snackbar {
+    visibility: hidden;
+    min-width: 250px;
+    margin-left: -125px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+    padding: 16px;
+    position: fixed;
+    z-index: 1;
+    left: 50%;
+    bottom: 30px;
+    font-size: 14px;
+  }
+    /* Snackbar styling */
+  .snackbar.show {
+    visibility: visible;
+    animation: fadein 0.5s, fadeout 0.5s 2.5s;
+  }
+
+  @keyframes fadein {
+    from { bottom: 0; opacity: 0; }
+    to { bottom: 30px; opacity: 1; }
+  }
+
+  @keyframes fadeout {
+    from { bottom: 30px; opacity: 1; }
+    to { bottom: 0; opacity: 0; }
   }

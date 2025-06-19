@@ -25,15 +25,14 @@
           <ul class="navbar-nav ms-auto">
             {% if current_user.is_authenticated %}
             <div class="dropdown" class = "nav-item">
-              <div class="illustration"><i class="ion-android-person"></i></div>
-              <button onclick="myFunction()" class="dropbtn">{{ current_user.username }}</button>
+                            <button onclick="myFunction()" class="dropbtn">{{ current_user.username }}</button>
               <div id="myDropdown" class="dropdown-content">
                 <a href="{{ url_for('equipments') }}">Equipments</a>
                 <a href="{{ url_for('services') }}">Services</a>
                 <a href="{{ url_for('categories') }}">Categories</a>
                 <a href="{{ url_for('components') }}">Components</a>
                 <a href="{{ url_for('locations') }}">Locations</a>
-                <div class="illustration"><a href="{{ url_for('logout') }}" class="ion-log-out"></a></div>
+                <a href="{{ url_for('logout') }}" class="ion-log-out"> Log out</a>
                 <a href="{{ url_for('admin_dashboard') }}">dashboard</a>
               </div>
             </div>
