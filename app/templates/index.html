@@ -3,11 +3,14 @@
 {% block content %}
 <div>
 
-<!-- Toggle Button for Filters -->
-<button id="toggleFilters" class="btn btn-outline-secondary" type="button" aria-expanded="false" aria-label="Toggle filters">
-  <i class="ion-android-funnel"></i> <!-- Filter icon -->
-</button></div>
-<p></p>
+  <div> {% if current_user.is_authenticated %}
+    <a href="{{ url_for('add_equipment') }}" class="btn btn-outline-secondary">Add Equipment</a><i>   </i>
+    {% endif %}
+    <!-- Toggle Button for Filters -->
+  <button id="toggleFilters" class="btn btn-outline-secondary" type="button" aria-expanded="false" aria-label="Toggle filters">
+    <i class="ion-android-funnel"></i> <!-- Filter icon -->
+  </button></div>
+  <p></p>
 
 <!-- Filter Section (Collapsible) -->
 <div class="collapse" id="filtersCollapse">
