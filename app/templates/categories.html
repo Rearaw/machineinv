@@ -7,9 +7,10 @@
 <a href="{{ url_for('add_category') }}" class="btn btn-outline-secondary mb-3">Add Category</a>
 
 <!-- Add PDF library references -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
+<script src="{{ url_for('static', filename='jpdf/jspdf.umd.min.js') }}"></script>
+
+<script src="{{ url_for('static', filename='jpdf/jspdf.plugin.autotable.min.js') }}"></script>
 <div class="accordion" id="categoryAccordion">
   {% for category, count, machines in categories %}
   <div class="accordion-item">
@@ -61,7 +62,7 @@
           <!-- Add Print PDF button next to Delete button -->
           <button onclick="generatePDF('{{ category.category_id }}', '{{ category.category_name }}')" 
                   class="btn btn-outline-secondary mb-3">
-            <i class="ion-android-document"></i> Print PDF
+            <i class="ion-android-document"></i> Download
           </button>
           <a href="{{ url_for('delete_category', category_id=category.category_id) }}" 
              class="btn btn-outline-secondary mb-3">
