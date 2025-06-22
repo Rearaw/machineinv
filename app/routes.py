@@ -5,6 +5,7 @@ from app import db, login_manager
 from app.models import User, Role, Equipment, Service,Component,Category,Location,EquipmentImage
 from werkzeug.utils import secure_filename
 import os
+from datetime import datetime, timedelta
 from flask import request, jsonify
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func
@@ -60,11 +61,46 @@ def init_app(app):
     def admin_dashboard():
         if current_user.role_id != 1:
             flash("Access denied: Admins only.")
-            return  redirect(url_for('equipments'))
+            return redirect(url_for('equipments'))
 
         total_machines = Equipment.query.count()
         total_users = User.query.count()
-        return render_template('admin_dashboard.html', total_machines=total_machines, total_users=total_users)
+
+        today = datetime.today().date()
+        upcoming_threshold = today + timedelta(days=3)
+
+        # Get all equipment with upcoming/overdue services
+        overdue_equipments = (
+            db.session.query(Equipment)
+            .join(Service)
+            .filter(Service.service_next_date <= upcoming_threshold)
+            .order_by(Service.service_next_date.asc())
+            .all()
+        )
+
+        overdue_count = len(overdue_equipments)
+
+        return render_template(
+            'admin_dashboard.html',
+            total_machines=total_machines,
+            total_users=total_users,
+            overdue_equipments=overdue_equipments,
+            overdue_count=overdue_count
+        )
+
+
+        @app.route('/api/reschedule/<int:equipment_id>', methods=['POST'])
+        @login_required
+        def api_reschedule(equipment_id):
+            data = request.get_json()
+            new_date = datetime.strptime(data['new_date'], '%Y-%m-%d').date()
+
+            latest_service = Service.query.filter_by(equipment_id=equipment_id).order_by(Service.service_date.desc()).first()
+            if latest_service:
+                latest_service.service_next_date = new_date
+                db.session.commit()
+                return jsonify({"success": True})
+            return jsonify({"success": False}), 404
 
     @app.route('/equipments', methods=['GET'])
     @login_required
@@ -151,7 +187,7 @@ def init_app(app):
             categories_with_counts.append((category, count, machines))
         return render_template("categories.html", categories=categories_with_counts)
 
-
+    
     @app.route('/add_category', methods=['GET', 'POST'])
     @login_required
     def add_category():

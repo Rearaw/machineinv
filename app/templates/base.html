@@ -58,6 +58,30 @@
       {% endwith %}
       {% block content %}{% endblock %}
     </div>
+    <div class="modal fade" id="rescheduleModal" tabindex="-1" aria-labelledby="rescheduleModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <form id="rescheduleForm">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="rescheduleModalLabel">Reschedule Service</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <input type="hidden" name="equipment_id" id="modalEquipmentId">
+              <label for="newDate" class="form-label">New Service Date</label>
+              <input type="date" id="newDate" name="new_date" class="form-control" required>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+
+
+
     <!-- Status Update Modal -->
 <div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -82,7 +106,65 @@
   </div>
 </div>
 
-
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+      const cards = document.querySelectorAll(".equipment-card");
+      const today = new Date();
+      const thresholdDays = 3;
+  
+      cards.forEach(card => {
+          const dateStr = card.dataset.nextDate;
+          if (!dateStr) return;
+  
+          const dueDate = new Date(dateStr);
+          const daysLeft = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
+  
+          if (daysLeft <= thresholdDays) {
+              // Show service due notice
+              card.querySelector(".service-due-text").style.display = "block";
+  
+              // Show dot indicator
+              card.querySelector(".due-indicator").style.display = "inline";
+  
+              // Show reschedule button
+              const rescheduleBtn = card.querySelector(".reschedule-btn");
+              if (rescheduleBtn) rescheduleBtn.style.display = "inline-block";
+          }
+      });
+  
+      // Attach click event to reschedule buttons
+      document.querySelectorAll(".reschedule-btn").forEach(btn => {
+          btn.addEventListener("click", function () {
+              const equipmentId = this.dataset.equipmentId;
+              document.getElementById("modalEquipmentId").value = equipmentId;
+          });
+      });
+  
+      // Handle form submission
+      document.getElementById("rescheduleForm").addEventListener("submit", function (e) {
+          e.preventDefault();
+  
+          const equipmentId = document.getElementById("modalEquipmentId").value;
+          const newDate = document.getElementById("newDate").value;
+  
+          fetch(`/api/reschedule/${equipmentId}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ new_date: newDate })
+          })
+          .then(res => res.json())
+          .then(data => {
+              if (data.success) {
+                  alert("Rescheduled successfully.");
+                  window.location.reload();
+              } else {
+                  alert("Failed to reschedule.");
+              }
+          });
+      });
+  });
+  </script>
+  
   <script>
     /* When the user clicks on the button, 
     toggle between hiding and showing the dropdown content */

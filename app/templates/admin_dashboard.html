@@ -2,25 +2,35 @@
 {% block content %}
 <div class="container mt-5">
     <h1 class="mb-4">Admin Dashboard</h1>
-    <div class="row">
+    <div class="row mb-4">
         <div class="col-md-4">
-            <div class="card text-white bg-primary mb-3">
-                <div class="card-header">Total Machines</div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ total_machines }}</h5>
-                </div>
+          <div class="card text-bg-primary">
+            <div class="card-body">
+              <h5 class="card-title">Total Machines</h5>
+              <p class="card-text fs-3">{{ total_machines }}</p>
             </div>
+          </div>
         </div>
         <div class="col-md-4">
-            <div class="card text-white bg-success mb-3">
-                <div class="card-header">Total Users</div>
-                <div class="card-body">
-                    <h5 class="card-title">{{ total_users }}</h5>
-                </div>
+          <div class="card text-bg-secondary">
+            <div class="card-body">
+              <h5 class="card-title">Total Users</h5>
+              <p class="card-text fs-3">{{ total_users }}</p>
             </div>
+          </div>
         </div>
-    </div>
+        <div class="col-md-4">
+          <div class="card text-bg-danger">
+            <div class="card-body">
+              <h5 class="card-title">Service Due Soon</h5>
+              <p class="card-text fs-3">{{ overdue_count }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
     <a href="{{ url_for('add_equipment') }}" class="btn btn-outline-secondary">Add New Equipment</a>
     <a href="{{ url_for('add_user') }}" class="btn btn-outline-secondary">Add New User</a>
 </div>
+
+  
 {% endblock %}
