@@ -1,36 +1,172 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="container mt-5">
-    <h1 class="mb-4">Admin Dashboard</h1>
-    <div class="row mb-4">
-        <div class="col-md-4">
-          <div class="card text-bg-primary">
-            <div class="card-body">
-              <h5 class="card-title">Total Machines</h5>
-              <p class="card-text fs-3">{{ total_machines }}</p>
-            </div>
+<script src="{{ url_for('static', filename='jpdf/jspdf.umd.min.js') }}"></script>
+<script src="{{ url_for('static', filename='jpdf/jspdf.plugin.autotable.min.js') }}"></script>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="machines-tab" data-bs-toggle="tab" data-bs-target="#machines" type="button" role="tab"><i class= 'ion-ios-cog-outline'></i>Total Machines</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab"><i class= 'ion-ios-people-outline'></i>Total Users</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="due-tab" data-bs-toggle="tab" data-bs-target="#due" type="button" role="tab"><i class= 'ion-wrench'></i>Service Due</button>
+  </li>
+</ul>
+
+<!-- Tab Content -->
+<div class="tab-content mt-3" id="dashboardTabsContent">
+  <!-- Machines Tab -->
+  <div class="tab-pane fade show active" id="machines" role="tabpanel">
+    <a href="{{ url_for('add_equipment') }}" class="btn btn-outline-secondary"><i class='ion-android-add'></i>  Add New Equipment</a>
+    <a onclick="generatePDF()" class="btn btn-outline-secondary"><i class="ion-android-document"></i> Download</a><p></p>
+    <table class="table table-hover table-bordered" id="table-all_equipments">
+      <thead class="table-dark">
+        <tr>
+          <th>Name</th>
+          <th>serial_number</th>
+          <th>Category</th>
+          <th>Location</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for eq in all_equipments %}
+        <tr onclick="window.location='{{ url_for('equipment_details', equipment_id=eq.equipment_id) }}'" style="cursor: pointer;">
+          <td>{{ eq.equipment_name }}</td>
+          <td>{{ eq.serial_number }}</td>
+          <td>{{ eq.category.category_name if eq.category else 'N/A' }}</td>
+          <td>{{ eq.location.location_name if eq.location else 'N/A' }}</td>
+          <td>{{ eq.status }}</td>
+          <td>
+            <form method="post" action="{{ url_for('delete_equipment', equipment_id=eq.equipment_id) }}" onsubmit="return confirm('Are you sure?')">
+              <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </div>
+
+  <!-- Users Tab -->
+  <div class="tab-pane fade" id="users" role="tabpanel">
+    <a href="{{ url_for('add_user') }}" class="btn btn-outline-secondary"><i class='ion-android-add'></i>  Add New User</a><p></p>
+    <table class="table table-bordered">
+      <thead class="table-dark">
+        <tr>
+          <th>Username</th>
+          <th>Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in all_users %}
+        <tr>
+          <td>{{ user.username }}</td>
+          <td>{{ user.role.role_name if user.role else 'N/A' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Due Services Tab -->
+  <div class="tab-pane fade" id="due" role="tabpanel">
+    <ul class="list-group">
+      {% if overdue_equipments %}
+        {% for eq in overdue_equipments %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          <div>
+            <strong>{{ eq.equipment_name }}</strong>
+            <small class="text-muted">({{ eq.location.location_name if eq.location else 'N/A' }})</small><br>
+            <span class="text-danger">
+              Due: {{ eq.services[-1].service_next_date.strftime('%Y-%m-%d') if eq.services else 'Unknown' }}
+            </span>
           </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card text-bg-secondary">
-            <div class="card-body">
-              <h5 class="card-title">Total Users</h5>
-              <p class="card-text fs-3">{{ total_users }}</p>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card text-bg-danger">
-            <div class="card-body">
-              <h5 class="card-title">Service Due Soon</h5>
-              <p class="card-text fs-3">{{ overdue_count }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    <a href="{{ url_for('add_equipment') }}" class="btn btn-outline-secondary">Add New Equipment</a>
-    <a href="{{ url_for('add_user') }}" class="btn btn-outline-secondary">Add New User</a>
+          <a href="{{ url_for('equipment_details', equipment_id=eq.equipment_id) }}" class="btn btn-sm btn-outline-warning">View</a>
+        </li>
+        {% endfor %}
+      {% else %}
+        <li class="list-group-item text-muted">No machines are due for service.</li>
+      {% endif %}
+    </ul>
+  </div>
 </div>
+</div>
+<script>
+
+  function generatePDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(18);
+      doc.setTextColor(40, 40, 40);
+      doc.text(`All Equipments Report`, 105, 15, { align: 'center' });
+      
+      // Add date
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 25);
+      
+      // Get table data
+      const table = document.getElementById(`table-all_equipments`);
+      let tableData = [];
+      
+      if (table) {
+          // Process table rows
+          const rows = table.querySelectorAll('tbody tr');
+          rows.forEach(row => {
+              const rowData = [];
+              const cells = row.querySelectorAll('td');
+              cells.forEach((cell, index) => {
+                  // Skip the actions column (last column)
+                  if (index < cells.length - 1) {
+                      rowData.push(cell.textContent.trim());
+                  }
+              });
+              tableData.push(rowData);
+          });
+          
+          // Add table to PDF
+          doc.autoTable({
+              startY: 30,
+              head: [['Machine Name','Serial Number','category','Location', 'Status']],
+              body: tableData,
+              theme: 'grid',
+              headStyles: {
+                  fillColor: [41, 128, 185],
+                  textColor: 255,
+                  fontSize: 10
+              },
+              bodyStyles: {
+                  fontSize: 9
+              },
+              margin: { top: 30 }
+          });
+      } else {
+          // No machines case
+          doc.setFontSize(12);
+          doc.text('No machines found.', 14, 40);
+      }
+      
+      // Add footer
+      const pageCount = doc.internal.getNumberOfPages();
+      for(let i = 1; i <= pageCount; i++) {
+          doc.setPage(i);
+          doc.setFontSize(8);
+          doc.setTextColor(150);
+          doc.text(`Page ${i} of ${pageCount}`, 195, 285, { align: 'right' });
+      }
+      
+      // Save the PDF
+      doc.save(`All_Machines_Report.pdf`);
+  }
+  </script>
 
   
 {% endblock %}

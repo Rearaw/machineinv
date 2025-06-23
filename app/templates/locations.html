@@ -7,9 +7,8 @@
 <a href="{{ url_for('add_location') }}" class="btn btn-outline-secondary mb-3">Add Location</a>
 
 <script src="{{ url_for('static', filename='jpdf/jspdf.umd.min.js') }}"></script>
-
-
 <script src="{{ url_for('static', filename='jpdf/jspdf.plugin.autotable.min.js') }}"></script>
+
 <div class="accordion" id="locationsAccordion">
   {% for location, count, equipments in locations_with_counts_and_machines %}
   <div class="accordion-item">
