@@ -4,7 +4,7 @@
 
 {% block content %}
 <h2> {{ location.location_name }}</h2>
-<a href="{{ url_for('categories') }}" class="btn btn-secondary mb-3">← Back to Categories</a>
+<a href="{{ url_for('categories') }}" class="btn btn-outline-secondary mb-3">← Back to Categories</a>
 
 {% if equipments %}
     <table class="table table-bordered table-hover">
@@ -22,6 +22,7 @@
             <tr>
                 <td>{{ equipment.equipment_id }}</td>
                 <td>{{ equipment.equipment_name }}</td>
+                <td>{{ equipment.serial_number }}</td>
                 <td>{{ equipment.location.location_name}}</td>
                 <td>{{ equipment.status }}</td>
                 <td>
