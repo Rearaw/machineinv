@@ -18,6 +18,7 @@ from datetime import datetime, timedelta
 from flask import request, jsonify
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func
+import socket
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
@@ -90,7 +91,7 @@ def init_app(app):
         overdue_count = len(overdue_equipments)
         all_equipments = Equipment.query.all()
         all_users = User.query.all()
-
+        server_ip = get_server_ip()
         return render_template(
             "admin_dashboard.html",
             total_machines=total_machines,
@@ -99,6 +100,7 @@ def init_app(app):
             overdue_count=overdue_count,
             all_equipments=all_equipments,
             all_users=all_users,
+            server_ip=server_ip,
         )
 
     @app.route("/api/reschedule/<int:equipment_id>", methods=["POST"])
@@ -566,7 +568,16 @@ def init_app(app):
         db.session.commit()
         flash("Component deleted successfully!", "success")
         return redirect(url_for("components"))
-
+    def get_server_ip(fallback="127.0.0.1"):
+        try:
+            with socket.socket(socket.AF_INET,socket.SOCK_DGRAM ) as s:
+                s.connect(('8.8.8.8',80))
+                return s.getsockname()[0]
+        except Exception:
+            return fallback
+    
+    
+        
     @app.route("/admin/add_user", methods=["GET", "POST"])
     @login_required
     def add_user():
