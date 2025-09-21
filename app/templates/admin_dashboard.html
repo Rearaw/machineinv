@@ -100,11 +100,105 @@
   </div>
   <!-- sync tab-->
   <div class="tab-pane fade" id="sync" role="tabpanel">
-    <h2> Device Location : <strong> {{server_ip}}</strong></P></h2>
+   
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <h2> Device Location : <strong id="server_ip"> {{server_ip}}</strong></P></h2>
+   <!-- QR display -->
+  <div id="qr-section">
+    <h4>Scan this QR:</h4>
+    <div id="qrcode"></div>
+    <button class="btn btn-outline-primary mt-3" onclick="startScanner()">Scan Another Server</button>
+  </div>
 
-      <script>
-        document.getElementById('server').innerText= "server: "+ window.location.hostname;
-      </script>
+  <!-- Scanner -->
+  <div id="scanner-section" style="display:none;">
+    <h4>Scan Server QR</h4>
+    <div id="reader" style="width:300px; margin:auto;"></div>
+    <div id="scan-result" class="mt-2 text-success"></div>
+    <button class="btn btn-outline-danger mt-3" onclick="stopScanner()">Cancel</button>
+  </div>
+
+  <!-- Loading / waiting -->
+  <div id="waiting-section" style="display:none; text-align:center;">
+    <h4>⏳ Waiting for connection...</h4>
+    <p>Please wait while we attempt to pair.</p>
+    <div class="spinner-border text-primary" role="status"></div>
+  </div>
+
+  <hr>
+  <h4>Manual Entry</h4>
+  <input type="text" id="manual-code" placeholder="Enter server code (IP:port)" class="form-control" />
+  <button onclick="connectManual()" class="btn btn-primary mt-2">Connect</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+<script>
+  // Generate QR for THIS server
+  new QRCode(document.getElementById("qrcode"), {
+    text: document.getElementById("server_ip").innerText + ":5000",
+    width: 200,
+    height: 200
+  });
+
+  let html5QrCode;
+
+  function startScanner() {
+    document.getElementById("qr-section").style.display = "none";
+    document.getElementById("scanner-section").style.display = "block";
+
+    html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
+      qrCodeMessage => {
+        stopScanner();
+        showWaiting();
+        // TODO: send qrCodeMessage to backend for pairing
+        setTimeout(() => {
+          hideWaiting();
+          alert("Attempted connection to: " + qrCodeMessage);
+        }, 3000); // simulate network wait
+      },
+      errorMessage => {
+        console.log("Scan error:", errorMessage);
+      }
+    );
+  }
+
+  function stopScanner() {
+    if (html5QrCode) {
+      html5QrCode.stop().then(() => {
+        document.getElementById("scanner-section").style.display = "none";
+        document.getElementById("qr-section").style.display = "block";
+      }).catch(err => console.log("Stop error:", err));
+    } else {
+      document.getElementById("scanner-section").style.display = "none";
+      document.getElementById("qr-section").style.display = "block";
+    }
+  }
+
+  function showWaiting() {
+    document.getElementById("qr-section").style.display = "none";
+    document.getElementById("scanner-section").style.display = "none";
+    document.getElementById("waiting-section").style.display = "block";
+  }
+
+  function hideWaiting() {
+    document.getElementById("waiting-section").style.display = "none";
+    document.getElementById("qr-section").style.display = "block";
+  }
+
+  function connectManual() {
+    const code = document.getElementById("manual-code").value;
+    if (!code) return alert("Enter a code first!");
+
+    showWaiting();
+    setTimeout(() => {
+      hideWaiting();
+      alert("Attempted manual connection to: " + code);
+    }, 3000); // simulate network wait
+  }
+</script>
    
     
   </div>
