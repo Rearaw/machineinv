@@ -3,10 +3,8 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
-
-
 class User(db.Model, UserMixin):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     user_id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
@@ -20,21 +18,25 @@ class User(db.Model, UserMixin):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
-    
+
     def get_id(self):
         return str(self.user_id)
 
+
 class EquipmentImage(db.Model):
-    __tablename__ = 'equipment_images'
+    __tablename__ = "equipment_images"
     image_id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(255), nullable=False)  # Stores the image filename
-    equipment_id = db.Column(db.Integer, db.ForeignKey("equipments.equipment_id"), nullable=False)
+    equipment_id = db.Column(
+        db.Integer, db.ForeignKey("equipments.equipment_id"), nullable=False
+    )
 
     equipment = db.relationship("Equipment", back_populates="images")
 
+
 # Add relationship in Equipment model
 class Equipment(db.Model):
-    __tablename__ = 'equipments'
+    __tablename__ = "equipments"
     equipment_id = db.Column(db.Integer, primary_key=True)
     equipment_name = db.Column(db.String(100), nullable=False)
     serial_number = db.Column(db.String(50), unique=True, nullable=False)
@@ -46,8 +48,13 @@ class Equipment(db.Model):
 
     location = db.relationship("Location", back_populates="equipments")
     category = db.relationship("Category", back_populates="equipments")
-    images = db.relationship("EquipmentImage", back_populates="equipment", cascade="all, delete-orphan")
-    services = db.relationship("Service", back_populates="equipment", cascade="all, delete-orphan")
+    images = db.relationship(
+        "EquipmentImage", back_populates="equipment", cascade="all, delete-orphan"
+    )
+    services = db.relationship(
+        "Service", back_populates="equipment", cascade="all, delete-orphan"
+    )
+
 
 class Category(db.Model):  # One-to-Many with Equipment
     __tablename__ = "categories"
@@ -57,6 +64,7 @@ class Category(db.Model):  # One-to-Many with Equipment
 
     equipments = db.relationship("Equipment", back_populates="category")
 
+
 class Location(db.Model):  # One-to-Many with Equipment
     __tablename__ = "locations"
     location_id = db.Column(db.Integer, primary_key=True)
@@ -64,6 +72,7 @@ class Location(db.Model):  # One-to-Many with Equipment
     location_description = db.Column(db.String(255), nullable=False)
 
     equipments = db.relationship("Equipment", back_populates="location")
+
 
 class Component(db.Model):  # One-to-One with Service
     __tablename__ = "components"
@@ -73,7 +82,10 @@ class Component(db.Model):  # One-to-One with Service
     component_install_date = db.Column(db.Date, nullable=False)
 
     service_id = db.Column(db.Integer, db.ForeignKey("services.service_id"))
-    service = db.relationship("Service", back_populates="component", uselist=False)  # One-to-One
+    service = db.relationship(
+        "Service", back_populates="component", uselist=False
+    )  # One-to-One
+
 
 class Service(db.Model):  # One-to-One with Equipment & Component, Many-to-One with User
     __tablename__ = "services"
@@ -89,7 +101,10 @@ class Service(db.Model):  # One-to-One with Equipment & Component, Many-to-One w
 
     service_by = db.relationship("User", back_populates="services")
     equipment = db.relationship("Equipment", back_populates="services")
-    component = db.relationship("Component", back_populates="service", uselist=False)  # One-to-One
+    component = db.relationship(
+        "Component", back_populates="service", uselist=False
+    )  # One-to-One
+
 
 class Role(db.Model):  # One-to-Many with Users
     __tablename__ = "roles"
@@ -97,9 +112,10 @@ class Role(db.Model):  # One-to-Many with Users
     role_name = db.Column(db.String(100), nullable=False)
 
     users = db.relationship("User", back_populates="role")
+
     @staticmethod
     def insert_roles():
-        predefined_roles = ['admin', 'technician']
+        predefined_roles = ["admin", "technician"]
 
         for role_name in predefined_roles:
             role = Role.query.filter_by(role_name=role_name).first()

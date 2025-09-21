@@ -7,6 +7,7 @@ from config import Config
 db = SQLAlchemy()
 login_manager = LoginManager()
 
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -20,12 +21,12 @@ def create_app():
 
     # Import and register routes
     from app import routes
+
     routes.init_app(app)
 
     # Create database tables (if they don't exist)
     with app.app_context():
         db.create_all()
         Role.insert_roles()
-
 
     return app
