@@ -109,11 +109,47 @@
         <div id="connection-status">
             {% if sync_status.status == 'connected' %}
                 <span class="badge bg-success">Connected</span>
+                <small class="ms-2">to {{ sync_status.peer_ip }}</small>
             {% elif sync_status.status == 'connecting' %}
                 <span class="badge bg-warning">Connecting...</span>
             {% else %}
                 <span class="badge bg-secondary">Disconnected</span>
             {% endif %}
+        </div>
+        <div id="session-info" class="mt-1">
+            <small>Session: {{ sync_status.session_id }}</small>
+        </div>
+    </div>
+    <!-- Data Display -->
+    <div id="data-section" class="mt-4">
+        <div class="row">
+            <!-- Local Data -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">📱 This Device's Data</h5>
+                    </div>
+                    <div class="card-body">
+                        <pre id="local-data"><code>{{ sync_status.local_data | tojson(indent=2) }}</code></pre>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Peer Data -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">🖥️ Connected Device's Data</h5>
+                    </div>
+                    <div class="card-body">
+                        {% if sync_status.peer_data %}
+                            <pre id="peer-data"><code>{{ sync_status.peer_data | tojson(indent=2) }}</code></pre>
+                        {% else %}
+                            <p class="text-muted">No data received from peer yet</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -147,9 +183,10 @@
     <input type="text" id="manual-code" placeholder="Enter server code (IP:port)" class="form-control" />
     <button onclick="connectManual()" class="btn btn-primary mt-2">Connect</button>
     
-    <!-- Reset Button -->
+    <!-- Action Buttons -->
     <div class="mt-4">
         <button onclick="resetConnection()" class="btn btn-outline-warning">Reset Connection</button>
+        <button onclick="refreshData()" class="btn btn-outline-info ms-2">Refresh Data</button>
     </div>
 </div>
 
@@ -193,6 +230,7 @@ function updateUI(statusData) {
     const statusElement = document.getElementById('connection-status');
     const qrSection = document.getElementById('qr-section');
     const waitingSection = document.getElementById('waiting-section');
+    const dataSection = document.getElementById('data-section');
     
     serverIpDisplay.textContent = statusData.server_ip || '{{ server_ip }}';
     
@@ -201,20 +239,74 @@ function updateUI(statusData) {
             statusElement.innerHTML = '<span class="badge bg-secondary">Disconnected</span>';
             qrSection.style.display = 'block';
             waitingSection.style.display = 'none';
+            dataSection.style.display = 'none';
             break;
         case 'connecting':
             statusElement.innerHTML = '<span class="badge bg-warning">Connecting...</span>';
             qrSection.style.display = 'none';
             waitingSection.style.display = 'block';
+            dataSection.style.display = 'none';
             break;
         case 'connected':
-            statusElement.innerHTML = '<span class="badge bg-success">Connected</span>';
+            statusElement.innerHTML = `<span class="badge bg-success">Connected</span><small class="ms-2">to ${statusData.peer_ip}</small>`;
             qrSection.style.display = 'none';
             waitingSection.style.display = 'none';
+            dataSection.style.display = 'block';
+            break;
+        case 'failed':
+            statusElement.innerHTML = '<span class="badge bg-danger">Connection Failed</span>';
+            qrSection.style.display = 'block';
+            waitingSection.style.display = 'none';
+            dataSection.style.display = 'none';
+            alert('Connection failed. Please check the IP address and try again.');
             break;
     }
 }
 
+// Manual connection
+async function connectManual() {
+    const manualCode = document.getElementById('manual-code').value.trim();
+    if (!manualCode) {
+        alert('Please enter a server address (IP:port)');
+        return;
+    }
+    
+    await processConnection(manualCode);
+}
+
+// Process connection
+async function processConnection(serverAddress) {
+    try {
+        // Show waiting section
+        document.getElementById('qr-section').style.display = 'none';
+        document.getElementById('scanner-section').style.display = 'none';
+        document.getElementById('waiting-section').style.display = 'block';
+        
+        // Send connection request to server
+        const response = await fetch('/update_connection', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                server_ip: serverAddress
+            })
+        });
+        
+        const result = await response.json();
+        console.log('Connection initiated:', result);
+        
+    } catch (error) {
+        console.error('Error initiating connection:', error);
+        alert('Error initiating connection: ' + error.message);
+        resetUI();
+    }
+}
+
+// Refresh data
+function refreshData() {
+    checkStatus();
+}
 
 // QR Scanner functions
 function startScanner() {

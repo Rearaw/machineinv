@@ -71,7 +71,7 @@ def init_app(app):
     @login_required
     def update_connection():
         data = request.json
-        server_ip = data.get('server_ip', '')      
+        server_ip = data.get('server_ip', '')
         result = app.sync_handler.update_connection(server_ip)
         return jsonify(result)
 
@@ -80,8 +80,24 @@ def init_app(app):
         return jsonify(app.sync_handler.get_status())
 
     @app.route('/reset_connection')
+    @login_required
     def reset_connection():
         result = app.sync_handler.reset_connection()
+        return jsonify(result)
+        
+    @app.route('/peer_connect', methods=['POST'])
+    @login_required
+    def peer_connect():
+        """Handle incoming connection requests from other devices"""
+        data = request.json
+        result = app.sync_handler.handle_incoming_connection(data)
+        return jsonify(result)
+
+    @app.route('/receive_data', methods=['POST'])
+    def receive_data():
+        """Receive data from connected peer"""
+        data = request.json
+        result = app.sync_handler.receive_data_from_peer(data)
         return jsonify(result)
 
     @app.route("/admin/dashboard")
