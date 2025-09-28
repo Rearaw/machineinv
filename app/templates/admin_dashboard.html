@@ -120,38 +120,112 @@
             <small>Session: {{ sync_status.session_id }}</small>
         </div>
     </div>
-    <!-- Data Display -->
-    <div id="data-section" class="mt-4">
-        <div class="row">
-            <!-- Local Data -->
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">📱 This Device's Data</h5>
+<!-- Data Display Section -->
+<div id="data-section" class="mt-4">
+    <!-- Comparison Results -->
+    <div id="comparison-section" class="mb-4" 
+         {% if not sync_status.get('comparison_results') %}style="display:none;"{% endif %}>
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">📊 File Comparison Results</h5>
+            </div>
+            <div class="card-body">
+                {% if sync_status.get('comparison_results') %}
+                    {% set comp = sync_status.comparison_results %}
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body">
+                                    <h4>{{ comp.summary.unchanged }}</h4>
+                                    <small>Unchanged</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body">
+                                    <h4>{{ comp.summary.modified }}</h4>
+                                    <small>Modified</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body">
+                                    <h4>{{ comp.summary.removed }}</h4>
+                                    <small>Removed</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body">
+                                    <h4>{{ comp.summary.added }}</h4>
+                                    <small>Added</small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <pre id="local-data"><code>{{ sync_status.local_data | tojson(indent=2) }}</code></pre>
-                    </div>
+                {% else %}
+                    <p class="text-muted">No comparison data available yet</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Local Data -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">📱 This Device</h5>
+                    <small>{{ sync_status.local_data.device_info.device_id if sync_status.local_data }}</small>
+                </div>
+                <div class="card-body">
+                    {% if sync_status.local_data %}
+                        <div class="mb-3">
+                            <strong>Files:</strong> {{ sync_status.local_data.system_info.total_files }}<br>
+                            <strong>Snapshot:</strong> {{ sync_status.local_data.system_info.snapshot_time }}<br>
+                            <strong>IP:</strong> {{ sync_status.local_data.device_info.ip_address }}
+                        </div>
+                        <details>
+                            <summary>Show File Details</summary>
+                            <pre class="mt-2 small"><code>{{ sync_status.local_data.file_snapshot | tojson(indent=2) }}</code></pre>
+                        </details>
+                    {% else %}
+                        <p class="text-muted">No local data available</p>
+                    {% endif %}
                 </div>
             </div>
-            
-            <!-- Peer Data -->
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">🖥️ Connected Device's Data</h5>
-                    </div>
-                    <div class="card-body">
-                        {% if sync_status.peer_data %}
-                            <pre id="peer-data"><code>{{ sync_status.peer_data | tojson(indent=2) }}</code></pre>
-                        {% else %}
-                            <p class="text-muted">No data received from peer yet</p>
-                        {% endif %}
-                    </div>
+        </div>
+        
+        <!-- Peer Data -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">🖥️ Connected Device</h5>
+                    <small>{{ sync_status.peer_data.device_info.device_id if sync_status.peer_data }}</small>
+                </div>
+                <div class="card-body">
+                    {% if sync_status.peer_data %}
+                        <div class="mb-3">
+                            <strong>Files:</strong> {{ sync_status.peer_data.system_info.total_files }}<br>
+                            <strong>Snapshot:</strong> {{ sync_status.peer_data.system_info.snapshot_time }}<br>
+                            <strong>IP:</strong> {{ sync_status.peer_data.device_info.ip_address }}<br>
+                            <strong>Received:</strong> {{ sync_status.peer_data.received_at }}
+                        </div>
+                        <details>
+                            <summary>Show File Details</summary>
+                            <pre class="mt-2 small"><code>{{ sync_status.peer_data.file_snapshot | tojson(indent=2) }}</code></pre>
+                        </details>
+                    {% else %}
+                        <p class="text-muted">No data received from peer yet</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
+</div>
 
     <!-- QR display -->
     <div id="qr-section" {% if sync_status.status != 'disconnected' %}style="display:none;"{% endif %}>
@@ -233,6 +307,7 @@ function updateUI(statusData) {
     const qrSection = document.getElementById('qr-section');
     const waitingSection = document.getElementById('waiting-section');
     const dataSection = document.getElementById('data-section');
+    const comparisonSection = document.getElementById('comparison-section');
     
     serverIpDisplay.textContent = statusData.server_ip || '{{ server_ip }}';
     
@@ -242,24 +317,32 @@ function updateUI(statusData) {
             qrSection.style.display = 'block';
             waitingSection.style.display = 'none';
             dataSection.style.display = 'none';
+            comparisonSection.style.display = 'none';
             break;
         case 'connecting':
             statusElement.innerHTML = '<span class="badge bg-warning">Connecting...</span>';
             qrSection.style.display = 'none';
             waitingSection.style.display = 'block';
             dataSection.style.display = 'none';
+            comparisonSection.style.display = 'none';
             break;
         case 'connected':
             statusElement.innerHTML = `<span class="badge bg-success">Connected</span><small class="ms-2">to ${statusData.peer_ip}</small>`;
             qrSection.style.display = 'none';
             waitingSection.style.display = 'none';
             dataSection.style.display = 'block';
+            
+            // Show comparison section if we have comparison results
+            if (statusData.comparison_results) {
+                comparisonSection.style.display = 'block';
+            }
             break;
         case 'failed':
             statusElement.innerHTML = '<span class="badge bg-danger">Connection Failed</span>';
             qrSection.style.display = 'block';
             waitingSection.style.display = 'none';
             dataSection.style.display = 'none';
+            comparisonSection.style.display = 'none';
             alert('Connection failed. Please check the IP address and try again.');
             break;
     }
@@ -352,46 +435,6 @@ function onScanSuccess(decodedText, decodedResult) {
 
 function onScanFailure(error) {
     // This is expected, no need to handle every failure
-}
-
-// Manual connection
-async function connectManual() {
-    const manualCode = document.getElementById('manual-code').value.trim();
-    if (!manualCode) {
-        alert('Please enter a server address');
-        return;
-    }
-    
-    await processConnection(manualCode);
-}
-
-// Process connection (both QR and manual)
-async function processConnection(serverAddress) {
-    try {
-        // Show waiting section
-        document.getElementById('qr-section').style.display = 'none';
-        document.getElementById('scanner-section').style.display = 'none';
-        document.getElementById('waiting-section').style.display = 'block';
-        
-        // Send connection request to server
-        const response = await fetch('/update_connection', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                server_ip: serverAddress
-            })
-        });
-        
-        const result = await response.json();
-        console.log('Connection initiated:', result);
-        
-    } catch (error) {
-        console.error('Error initiating connection:', error);
-        alert('Error initiating connection');
-        resetUI();
-    }
 }
 
 // Cancel connection

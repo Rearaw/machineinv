@@ -1,18 +1,19 @@
-# sync_handshake.py
-# sync_handshake.py
+
 import time
 import threading
 import requests
 import json
 from flask import jsonify
 import uuid
+from app.file_checksum_manager import FileChecksumManager
 
 class SyncHandshake:
     def __init__(self):
         self.connection_status = {"status": "disconnected", "server_ip": "", "peer_ip": ""}
         self.peer_data = {}  # Store data received from peer
         self.local_data = {}  # Store local data to share
-        self.session_id = str(uuid.uuid4())[:8]  # Unique session ID
+        self.session_id = str(uuid.uuid4())[:8]
+        self.file_manager = FileChecksumManager()  # File checksum manager
     
     def update_connection(self, server_ip):
         """Update connection status and initiate connection process"""
@@ -20,7 +21,6 @@ class SyncHandshake:
         self.connection_status["peer_ip"] = server_ip
         self.connection_status["status"] = "connecting"
         
-        # Start connection process in background
         def connect_to_peer():
             try:
                 # First, verify the peer is reachable
@@ -61,8 +61,6 @@ class SyncHandshake:
         try:
             self.connection_status["peer_ip"] = peer_data.get("peer_ip")
             self.connection_status["status"] = "connected"
-            
-            # Store peer session info
             self.session_id = peer_data.get("session_id", self.session_id)
             
             # Exchange data with the peer
@@ -76,7 +74,7 @@ class SyncHandshake:
         """Exchange JSON data with connected peer"""
         def exchange():
             try:
-                # Prepare local data to share
+                # Prepare local data (including file checksums)
                 self.prepare_local_data()
                 
                 # Send our data to peer
@@ -88,7 +86,7 @@ class SyncHandshake:
                         "session_id": self.session_id,
                         "data": self.local_data
                     },
-                    timeout=10
+                    timeout=30  # Increased timeout for file data
                 )
                 
                 if response.status_code == 200:
@@ -107,26 +105,88 @@ class SyncHandshake:
             self.peer_data = data_package.get("data", {})
             self.peer_data["received_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
             self.peer_data["sender_ip"] = data_package.get("sender_ip", "unknown")
+            
+            # Compare with local data if we have both
+            if self.local_data and self.peer_data:
+                self.compare_file_data()
+                
             return {"status": "success", "message": "Data received"}
         except Exception as e:
             return {"status": "error", "message": str(e)}
     
     def prepare_local_data(self):
-        """Prepare local data to share with peer"""
-        # This is where you prepare your device's data
-        # You can customize this based on what you want to share
-        self.local_data = {
-            "device_id": self.get_my_ip(),
-            "device_name": f"Device-{self.session_id}",
-            "connected_at": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "status": "online",
-            "sample_data": {
-                "message": f"Hello from {self.get_my_ip()}!",
-                "random_number": int(time.time()) % 1000,
-                "services_count": 5,  # Example data
-                "users_count": 3      # Example data
+        """Prepare local data including file checksums"""
+        try:
+            # Get file checksum data
+            file_data = self.file_manager.get_current_file_data()
+            
+            # Prepare the complete local data package
+            self.local_data = {
+                "device_info": {
+                    "device_id": self.file_manager.get_device_id(),
+                    "ip_address": self.get_my_ip(),
+                    "connected_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "status": "online"
+                },
+                "file_snapshot": file_data,
+                "system_info": {
+                    "total_files": file_data.get("total_files", 0),
+                    "snapshot_time": file_data.get("timestamp"),
+                    "session_id": self.session_id
+                }
             }
-        }
+            
+        except Exception as e:
+            print(f"Error preparing local data: {e}")
+            # Fallback data if file scanning fails
+            self.local_data = {
+                "device_info": {
+                    "device_id": self.file_manager.get_device_id(),
+                    "ip_address": self.get_my_ip(),
+                    "connected_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "status": "online"
+                },
+                "file_snapshot": {
+                    "error": f"Failed to scan files: {str(e)}",
+                    "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "total_files": 0,
+                    "checksums": {}
+                },
+                "system_info": {
+                    "total_files": 0,
+                    "snapshot_time": time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "session_id": self.session_id
+                }
+            }
+    
+    def compare_file_data(self):
+        """Compare local and peer file data"""
+        try:
+            local_snapshot = self.local_data.get("file_snapshot", {})
+            peer_snapshot = self.peer_data.get("file_snapshot", {})
+            
+            differences = self.file_manager.compare_snapshots(local_snapshot, peer_snapshot)
+            
+            # Store comparison results
+            self.comparison_results = {
+                "compared_at": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "differences": differences,
+                "summary": {
+                    "added": len(differences["added"]),
+                    "removed": len(differences["removed"]),
+                    "modified": len(differences["modified"]),
+                    "unchanged": len(differences["unchanged"])
+                }
+            }
+            
+            print(f"File comparison completed: {self.comparison_results['summary']}")
+            
+        except Exception as e:
+            print(f"Error comparing file data: {e}")
+            self.comparison_results = {
+                "error": str(e),
+                "compared_at": time.strftime("%Y-%m-%d %H:%M:%S")
+            }
     
     def get_my_ip(self):
         """Get the current device's IP address"""
@@ -140,18 +200,27 @@ class SyncHandshake:
     
     def get_status(self):
         """Get current connection status"""
-        return {
+        status_data = {
             **self.connection_status,
             "session_id": self.session_id,
             "peer_data": self.peer_data,
             "local_data": self.local_data
         }
+        
+        # Add comparison results if available
+        if hasattr(self, 'comparison_results'):
+            status_data["comparison_results"] = self.comparison_results
+            
+        return status_data
     
     def reset_connection(self):
         """Reset connection to initial state"""
         self.connection_status = {"status": "disconnected", "server_ip": "", "peer_ip": ""}
         self.peer_data = {}
+        self.local_data = {}
         self.session_id = str(uuid.uuid4())[:8]
+        if hasattr(self, 'comparison_results'):
+            del self.comparison_results
         return {"status": "reset"}
 
 # Create a singleton instance
