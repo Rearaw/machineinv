@@ -71,8 +71,12 @@ def init_app(app):
     @login_required
     def update_connection():
         data = request.json
-        server_ip = data.get('server_ip', '')
-        result = app.sync_handler.update_connection(server_ip)
+        server_ip=get_server_ip()
+        serverIpAddresses= {
+            "peer_server_ip":data.get('peer_server_ip', ''),
+            "server_ip" :server_ip
+        }
+        result = app.sync_handler.update_connection(serverIpAddresses)
         return jsonify(result)
 
     @app.route('/get_status')
@@ -604,6 +608,7 @@ def init_app(app):
         db.session.commit()
         flash("Component deleted successfully!", "success")
         return redirect(url_for("components"))
+        
     def get_server_ip(fallback="127.0.0.1"):
         try:
             with socket.socket(socket.AF_INET,socket.SOCK_DGRAM ) as s:

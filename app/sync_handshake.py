@@ -15,26 +15,27 @@ class SyncHandshake:
         self.session_id = str(uuid.uuid4())[:8]
         self.file_manager = FileChecksumManager()  # File checksum manager
     
-    def update_connection(self, server_ip):
+    def update_connection(self, serverIpAddresses):
         """Update connection status and initiate connection process"""
-        self.connection_status["server_ip"] = server_ip
-        self.connection_status["peer_ip"] = server_ip
+        peer_ip=serverIpAddresses.get("peer_server_ip")
+        self.connection_status["server_ip"] = serverIpAddresses.get("server_ip")
+        self.connection_status["peer_ip"] = peer_ip
         self.connection_status["status"] = "connecting"
         
         def connect_to_peer():
             try:
                 # First, verify the peer is reachable
-                response = requests.get(f"http://{server_ip}/get_status", timeout=5)
+                response = requests.get(f"http://{peer_ip}/get_status", timeout=5)
                 if response.status_code == 200:
                     # Peer is reachable, now send our connection request
                     connection_data = {
-                        "peer_ip": self.get_my_ip(),
+                        "server_ip": self.get_my_ip(),
                         "session_id": self.session_id,
                         "action": "connect"
                     }
                     
                     response = requests.post(
-                        f"http://{server_ip}/peer_connect", 
+                        f"http://{peer_ip}/peer_connect", 
                         json=connection_data,
                         timeout=10
                     )
@@ -188,15 +189,27 @@ class SyncHandshake:
                 "compared_at": time.strftime("%Y-%m-%d %H:%M:%S")
             }
     
-    def get_my_ip(self):
-        """Get the current device's IP address"""
+    # def get_my_ip(self):
+    #     """Get the current device's IP address"""
+    #     try:
+            
+    #         hostname = socket.gethostname()
+    #         local_ip = socket.gethostbyname(hostname)
+    #         return f"{local_ip}:5000"
+    #     except:
+    #         return "unknown:5000"
+
+
+
+
+    def get_my_ip(self,fallback="127.0.0.1"):
         try:
             import socket
-            hostname = socket.gethostname()
-            local_ip = socket.gethostbyname(hostname)
-            return f"{local_ip}:5000"
-        except:
-            return "unknown:5000"
+            with socket.socket(socket.AF_INET,socket.SOCK_DGRAM ) as s:
+                s.connect(('8.8.8.8',80))
+                return f"{s.getsockname()[0]}"
+        except Exception:
+            return fallback
     
     def get_status(self):
         """Get current connection status"""
