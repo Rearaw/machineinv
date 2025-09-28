@@ -105,7 +105,7 @@
     
     <!-- Status Display -->
     <div id="status-section" class="alert alert-info">
-        <h2>Device Location: <strong id="server_ip_display">{{ sync_status.server_ip or server_ip }}</strong></h2>
+        <h2>Device Location: <strong id="server_ip">{{ sync_status.server_ip or server_ip }}</strong></h2>
         <div id="connection-status">
             {% if sync_status.status == 'connected' %}
                 <span class="badge bg-success">Connected</span>
@@ -197,7 +197,9 @@ let statusCheckInterval = null;
 // Initialize QR code for this device
 document.addEventListener('DOMContentLoaded', function() {
     // Generate QR code for current device
-    const currentUrl = window.location.origin;
+    //const currentUrl = window.location.origin;
+    const currentUrl=document.getElementById("server_ip").innerText + ":5000";
+
     new QRCode(document.getElementById("qrcode"), {
         text: currentUrl,
         width: 200,
@@ -226,7 +228,7 @@ async function checkStatus() {
 
 // Update UI based on status
 function updateUI(statusData) {
-    const serverIpDisplay = document.getElementById('server_ip_display');
+    const serverIpDisplay = document.getElementById('server_ip');
     const statusElement = document.getElementById('connection-status');
     const qrSection = document.getElementById('qr-section');
     const waitingSection = document.getElementById('waiting-section');
