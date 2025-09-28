@@ -1,5 +1,4 @@
-from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session,jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db, login_manager
 from app.models import (
@@ -15,10 +14,10 @@ from app.models import (
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime, timedelta
-from flask import request, jsonify
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func
 import socket
+
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
@@ -67,6 +66,24 @@ def init_app(app):
         flash("Logged out successfully!", "success")
         return redirect(url_for("index"))
 
+    # Sync Handshake Routes
+    @app.route('/update_connection', methods=['POST'])
+    @login_required
+    def update_connection():
+        data = request.json
+        server_ip = data.get('server_ip', '')      
+        result = app.sync_handler.update_connection(server_ip)
+        return jsonify(result)
+
+    @app.route('/get_status')
+    def get_status():
+        return jsonify(app.sync_handler.get_status())
+
+    @app.route('/reset_connection')
+    def reset_connection():
+        result = app.sync_handler.reset_connection()
+        return jsonify(result)
+
     @app.route("/admin/dashboard")
     @login_required
     def admin_dashboard():
@@ -91,7 +108,9 @@ def init_app(app):
         overdue_count = len(overdue_equipments)
         all_equipments = Equipment.query.all()
         all_users = User.query.all()
+        sync_status = app.sync_handler.get_status()
         server_ip = get_server_ip()
+        
         return render_template(
             "admin_dashboard.html",
             total_machines=total_machines,
@@ -101,6 +120,7 @@ def init_app(app):
             all_equipments=all_equipments,
             all_users=all_users,
             server_ip=server_ip,
+            sync_status=sync_status
         )
 
     @app.route("/api/reschedule/<int:equipment_id>", methods=["POST"])
@@ -575,6 +595,26 @@ def init_app(app):
                 return s.getsockname()[0]
         except Exception:
             return fallback
+            
+    @app.route("/get-ip")
+    def get_ip():
+        import socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            s.connect(("8.8.8.8", 80))
+            ip = s.getsockname()[0]
+        finally:
+            s.close()
+        return jsonify({"ip": ip})
+
+    connected_peers = set()
+
+    @app.route("/handshake", methods=["POST"])
+    def handshake():
+        peer_ip = request.json.get("ip")
+        connected_peers.add(peer_ip)
+        return jsonify({"status": "acknowledged", "your_ip": request.host})
+
     
     
         
