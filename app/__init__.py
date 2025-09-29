@@ -1,10 +1,12 @@
 from flask import Flask
-import os.path,sys
+import os.path, sys
+
 sys.path.append(os.path.expanduser(f"~/machineinv"))
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from config import Config
-from app.sync_handshake import sync_handler 
+from app.sync_handshake import sync_handler
+
 # Create instances of extensions
 db = SQLAlchemy()
 login_manager = LoginManager()

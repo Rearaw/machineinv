@@ -105,7 +105,7 @@
     
     <!-- Status Display -->
     <div id="status-section" class="alert alert-info">
-        <h2>Device Location: <strong id="server_ip">{{ sync_status.server_ip or server_ip }}</strong></h2>
+        <h2>Device Location: <strong id="server_ip">{{server_ip }}</strong></h2>
         <div id="connection-status">
             {% if sync_status.status == 'connected' %}
                 <span class="badge bg-success">Connected</span>
@@ -374,7 +374,8 @@ async function processConnection(serverAddress) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                server_ip: serverAddress
+                peer_server_ip: serverAddress
+                
             })
         });
         

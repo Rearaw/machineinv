@@ -1,4 +1,13 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session,jsonify
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    flash,
+    session,
+    jsonify,
+)
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db, login_manager
 from app.models import (
@@ -67,29 +76,29 @@ def init_app(app):
         return redirect(url_for("index"))
 
     # Sync Handshake Routes
-    @app.route('/update_connection', methods=['POST'])
+    @app.route("/update_connection", methods=["POST"])
     @login_required
     def update_connection():
         data = request.json
-        server_ip=get_server_ip()
-        serverIpAddresses= {
-            "peer_server_ip":data.get('peer_server_ip', ''),
-            "server_ip" :server_ip
+        server_ip = get_server_ip()
+        serverIpAddresses = {
+            "peer_server_ip": data.get("peer_server_ip", ""),
+            "server_ip": server_ip,
         }
         result = app.sync_handler.update_connection(serverIpAddresses)
         return jsonify(result)
 
-    @app.route('/get_status')
+    @app.route("/get_status")
     def get_status():
         return jsonify(app.sync_handler.get_status())
 
-    @app.route('/reset_connection')
+    @app.route("/reset_connection")
     @login_required
     def reset_connection():
         result = app.sync_handler.reset_connection()
         return jsonify(result)
-        
-    @app.route('/peer_connect', methods=['POST'])
+
+    @app.route("/peer_connect", methods=["POST"])
     @login_required
     def peer_connect():
         """Handle incoming connection requests from other devices"""
@@ -97,7 +106,7 @@ def init_app(app):
         result = app.sync_handler.handle_incoming_connection(data)
         return jsonify(result)
 
-    @app.route('/receive_data', methods=['POST'])
+    @app.route("/receive_data", methods=["POST"])
     def receive_data():
         """Receive data from connected peer"""
         data = request.json
@@ -130,7 +139,7 @@ def init_app(app):
         all_users = User.query.all()
         sync_status = app.sync_handler.get_status()
         server_ip = get_server_ip()
-        
+
         return render_template(
             "admin_dashboard.html",
             total_machines=total_machines,
@@ -140,7 +149,7 @@ def init_app(app):
             all_equipments=all_equipments,
             all_users=all_users,
             server_ip=server_ip,
-            sync_status=sync_status
+            sync_status=sync_status,
         )
 
     @app.route("/api/reschedule/<int:equipment_id>", methods=["POST"])
@@ -608,18 +617,19 @@ def init_app(app):
         db.session.commit()
         flash("Component deleted successfully!", "success")
         return redirect(url_for("components"))
-        
+
     def get_server_ip(fallback="127.0.0.1"):
         try:
-            with socket.socket(socket.AF_INET,socket.SOCK_DGRAM ) as s:
-                s.connect(('8.8.8.8',80))
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                s.connect(("8.8.8.8", 80))
                 return s.getsockname()[0]
         except Exception:
             return fallback
-            
+
     @app.route("/get-ip")
     def get_ip():
         import socket
+
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
             s.connect(("8.8.8.8", 80))
@@ -636,9 +646,6 @@ def init_app(app):
         connected_peers.add(peer_ip)
         return jsonify({"status": "acknowledged", "your_ip": request.host})
 
-    
-    
-        
     @app.route("/admin/add_user", methods=["GET", "POST"])
     @login_required
     def add_user():
